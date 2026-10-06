@@ -118,26 +118,57 @@ def run_training(config_path: str, run_name: str, dataset_path: str | None = Non
     output.parent.mkdir(parents=True, exist_ok=True)
     results_dir = repo_path(cfg["results_dir"])
     log_path = results_dir / f"train_{run_name}.jsonl"
-    if log_path.exists():
-        log_path.unlink()
 
     accum = int(cfg["grad_accum_steps"])
     epochs = int(cfg.get("epochs", 1))
     max_norm = float(cfg["max_grad_norm"])
     params = trainable_parameters(model)
+    named = {n: p for n, p in model.named_parameters() if p.requires_grad}
     n_micro = len(loader) * epochs
     n_steps = math.ceil(n_micro / accum)
+    every = int(cfg.get("checkpoint_every_steps", 25))
     print(f"[DPO:{run_name}] beta={beta} examples={len(bundle['rows'])} (dropped {len(bundle['dropped_indices'])}) "
           f"micro-batches={n_micro} optimizer-steps={n_steps}", flush=True)
 
+    # Resume support: every `every` optimizer steps the LoRA weights, optimizer state, RNG state and
+    # position are saved to <output>/_resume/state.pt. Because the shuffle order is fixed by its own
+    # seeded generator, a restarted run replays the same batch order and skips the finished ones.
+    resume_path = output / "_resume" / "state.pt"
+    step, micro, done_micro, elapsed_before = 0, 0, 0, 0.0
+    if resume_path.exists():
+        st = torch.load(resume_path, map_location="cpu", weights_only=False)
+        with torch.no_grad():
+            for n, t in st["params"].items():
+                named[n].copy_(t.to(named[n].device))
+        optimizer.load_state_dict(st["optimizer"])
+        torch.set_rng_state(st["rng_cpu"])
+        if torch.cuda.is_available() and st.get("rng_cuda") is not None:
+            torch.cuda.set_rng_state_all(st["rng_cuda"])
+        step, done_micro, elapsed_before = st["step"], st["micro"], st["elapsed_s"]
+        kept = [l for l in log_path.read_text().splitlines() if l.strip()][:step] if log_path.exists() else []
+        log_path.write_text("".join(l + "\n" for l in kept))
+        print(f"  resuming from optimizer step {step}/{n_steps} (skipping {done_micro} finished micro-batches)", flush=True)
+    elif log_path.exists():
+        log_path.unlink()
+
+    def save_resume():
+        resume_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"params": {n: p.detach().cpu() for n, p in named.items()}, "optimizer": optimizer.state_dict(),
+                    "rng_cpu": torch.get_rng_state(),
+                    "rng_cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+                    "step": step, "micro": micro, "elapsed_s": elapsed()}, resume_path)
+
     reset_peak_vram()
-    elapsed = wall_timer()
+    timer = wall_timer()
+    elapsed = lambda: elapsed_before + timer()
     model.train()
     optimizer.zero_grad(set_to_none=True)
-    step, micro, buf = 0, 0, []
+    buf = []
     for epoch in range(epochs):
         for chosen, rejected in loader:
             micro += 1
+            if micro <= done_micro:
+                continue  # finished before the restart
             window = min(accum, n_micro - step * accum)  # last window may be shorter
             loss, diag, _ = dpo_batch_forward(model, chosen, rejected, beta, train=True)
             (loss / window).backward()
@@ -156,8 +187,13 @@ def run_training(config_path: str, run_name: str, dataset_path: str | None = Non
                 if step % 5 == 0 or step == n_steps:
                     print(f"  step {step}/{n_steps} loss={rec['loss']:.4f} acc={rec['preference_accuracy']:.3f} "
                           f"margin={rec['margin_mean']:.3f} gnorm={gnorm:.3f} t={rec['elapsed_s']:.0f}s", flush=True)
+                if every > 0 and step % every == 0 and step < n_steps:
+                    save_resume()
 
     model.save_pretrained(str(output))
+    if resume_path.exists():
+        resume_path.unlink()
+        resume_path.parent.rmdir()
     meta = {
         "run_name": run_name,
         "beta": beta,
