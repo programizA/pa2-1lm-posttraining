@@ -80,6 +80,11 @@ python -m task5_feedback.evaluate_math --config configs/feedback.yaml --dataset 
 python -m task5_feedback.compare_feedback --config configs/feedback.yaml
 ```
 
+### Running on Kaggle
+`kaggle/*.ipynb` are thin launchers (no experiment logic): they clone this repo, install it, and run the
+commands above, Task 1 + Task 5 in parallel and Task 2 + Task 3 in parallel on a "GPU T4 x2" machine.
+Regenerate them with `python kaggle/build_notebooks.py`.
+
 ### Figures
 ```bash
 python -m analysis.make_figures --results results --out report/figures
