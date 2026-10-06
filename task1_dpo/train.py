@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
+import math
 
 import torch
 from torch.optim import AdamW
@@ -16,8 +16,9 @@ from common.data import (
     read_jsonl,
     repo_path,
 )
-from common.logging_utils import set_seed
-from common.models import load_policy, load_tokenizer, trainable_parameters
+from common.logging_utils import append_jsonl, save_json, set_seed, wall_timer
+from common.models import load_policy, load_tokenizer, reference_mode, trainable_parameters
+from common.rl_utils import batch_to, grad_norm, model_device, peak_vram_gib, reset_peak_vram, row_id, sequence_logprobs
 from task1_dpo.dpo import dpo_loss
 
 
@@ -33,21 +34,43 @@ def make_collate(tokenizer, max_length):
     return collate
 
 
+def filter_encodable(rows, tokenizer, max_length, min_response_tokens: int = 8):
+    """Indices of pairs whose prompt leaves at least `min_response_tokens` of response budget.
+
+    encode_prompt_response raises on over-long prompts; dropping them up front keeps the run
+    alive, and the dropped indices are logged so the exact training set stays reproducible.
+    """
+    kept, dropped = [], []
+    for i, row in enumerate(rows):
+        n = len(tokenizer.apply_chat_template(prompt_messages_from_preference(row), tokenize=True, add_generation_prompt=True))
+        (kept if n < max_length - min_response_tokens else dropped).append(i)
+    return kept, dropped
+
+
 def prepare_dpo_run(config_path: str, dataset_path: str | None = None, beta: float | None = None, max_examples: int | None = None):
     cfg = load_yaml(config_path)
-    set_seed(int(cfg["seed"]))
+    seed = int(cfg["seed"])
+    set_seed(seed)
     path = dataset_path or cfg["paths"]["dpo_standard_train"]
     rows = read_jsonl(path)
     if max_examples is not None:
         rows = rows[: int(max_examples)]
 
     tokenizer = load_tokenizer(cfg["base_model"])
+    max_len = int(cfg["max_sequence_length"])
+    kept, dropped = filter_encodable(rows, tokenizer, max_len)
+    ids = [row_id(rows[i], i) for i in kept]
+    rows = [rows[i] for i in kept]
+
     model = load_policy(cfg, trainable=True, fresh_lora=True)
+    # Dedicated generator: the shuffle order depends only on the seed, so every beta fork sees the
+    # identical example order regardless of how much RNG model construction consumed.
     loader = DataLoader(
         rows,
         batch_size=int(cfg["batch_size"]),
         shuffle=True,
-        collate_fn=make_collate(tokenizer, int(cfg["max_sequence_length"])),
+        generator=torch.Generator().manual_seed(seed),
+        collate_fn=make_collate(tokenizer, max_len),
     )
     optimizer = AdamW(
         trainable_parameters(model),
@@ -57,6 +80,9 @@ def prepare_dpo_run(config_path: str, dataset_path: str | None = None, beta: flo
     return {
         "cfg": cfg,
         "rows": rows,
+        "row_ids": ids,
+        "dropped_indices": dropped,
+        "dataset_path": str(path),
         "tokenizer": tokenizer,
         "model": model,
         "loader": loader,
@@ -65,17 +91,93 @@ def prepare_dpo_run(config_path: str, dataset_path: str | None = None, beta: flo
     }
 
 
+def dpo_batch_forward(model, chosen, rejected, beta, train: bool):
+    """Policy and frozen-reference sequence log-probs for one batch, plus the DPO loss.
+
+    The reference is the same network with the LoRA adapter disabled (the common initialisation),
+    evaluated without gradients.
+    """
+    device = model_device(model)
+    chosen, rejected = batch_to(chosen, device), batch_to(rejected, device)
+    with torch.no_grad(), reference_mode(model):
+        ref_c, _ = sequence_logprobs(model, chosen)
+        ref_r, _ = sequence_logprobs(model, rejected)
+    ctx = torch.enable_grad() if train else torch.no_grad()
+    with ctx:
+        pol_c, len_c = sequence_logprobs(model, chosen)
+        pol_r, len_r = sequence_logprobs(model, rejected)
+        loss, diag = dpo_loss(pol_c, pol_r, ref_c, ref_r, beta)
+    return loss, diag, {"pol_c": pol_c, "pol_r": pol_r, "ref_c": ref_c, "ref_r": ref_r, "len_c": len_c, "len_r": len_r}
+
+
 def run_training(config_path: str, run_name: str, dataset_path: str | None = None, output_path: str | None = None, beta: float | None = None, max_examples: int | None = None):
     bundle = prepare_dpo_run(config_path, dataset_path, beta, max_examples)
     cfg = bundle["cfg"]
+    model, loader, optimizer, beta = bundle["model"], bundle["loader"], bundle["optimizer"], bundle["beta"]
     output = repo_path(output_path or cfg["standard_output"])
     output.parent.mkdir(parents=True, exist_ok=True)
+    results_dir = repo_path(cfg["results_dir"])
+    log_path = results_dir / f"train_{run_name}.jsonl"
+    if log_path.exists():
+        log_path.unlink()
 
-    raise NotImplementedError(
-        "TODO(student): implement the DPO optimization loop, logging, gradient accumulation, "
-        "reference-policy computation, and checkpoint saving. Validate task1_dpo.dpo.dpo_loss "
-        "against the manual before trusting results."
-    )
+    accum = int(cfg["grad_accum_steps"])
+    epochs = int(cfg.get("epochs", 1))
+    max_norm = float(cfg["max_grad_norm"])
+    params = trainable_parameters(model)
+    n_micro = len(loader) * epochs
+    n_steps = math.ceil(n_micro / accum)
+    print(f"[DPO:{run_name}] beta={beta} examples={len(bundle['rows'])} (dropped {len(bundle['dropped_indices'])}) "
+          f"micro-batches={n_micro} optimizer-steps={n_steps}", flush=True)
+
+    reset_peak_vram()
+    elapsed = wall_timer()
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+    step, micro, buf = 0, 0, []
+    for epoch in range(epochs):
+        for chosen, rejected in loader:
+            micro += 1
+            window = min(accum, n_micro - step * accum)  # last window may be shorter
+            loss, diag, _ = dpo_batch_forward(model, chosen, rejected, beta, train=True)
+            (loss / window).backward()
+            buf.append({k: float(v) for k, v in diag.items()} | {"loss": float(loss.item())})
+            if len(buf) == window:
+                gnorm = grad_norm(params)
+                torch.nn.utils.clip_grad_norm_(params, max_norm)
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
+                step += 1
+                rec = {k: sum(b[k] for b in buf) / len(buf) for k in buf[0]}
+                rec.update({"step": step, "epoch": epoch, "examples_seen": micro * int(cfg["batch_size"]),
+                            "grad_norm_preclip": gnorm, "elapsed_s": elapsed(), "peak_vram_gib": peak_vram_gib()})
+                append_jsonl(log_path, rec)
+                buf = []
+                if step % 5 == 0 or step == n_steps:
+                    print(f"  step {step}/{n_steps} loss={rec['loss']:.4f} acc={rec['preference_accuracy']:.3f} "
+                          f"margin={rec['margin_mean']:.3f} gnorm={gnorm:.3f} t={rec['elapsed_s']:.0f}s", flush=True)
+
+    model.save_pretrained(str(output))
+    meta = {
+        "run_name": run_name,
+        "beta": beta,
+        "dataset_path": bundle["dataset_path"],
+        "max_examples": max_examples,
+        "n_train_examples": len(bundle["rows"]),
+        "dropped_indices": bundle["dropped_indices"],
+        "train_row_ids": bundle["row_ids"],
+        "optimizer_steps": step,
+        "wall_clock_s": elapsed(),
+        "peak_vram_gib": peak_vram_gib(),
+        "hyperparameters": {k: cfg[k] for k in ("learning_rate", "weight_decay", "batch_size", "grad_accum_steps",
+                                                 "epochs", "max_sequence_length", "max_grad_norm", "seed")},
+        "lora": cfg["lora"],
+        "base_model": cfg["base_model"],
+    }
+    save_json(output / "run_meta.json", meta)
+    save_json(results_dir / f"train_{run_name}_meta.json", meta)
+    print(f"[DPO:{run_name}] saved adapter to {output} ({elapsed():.0f}s, peak {peak_vram_gib()} GiB)")
+    return output
 
 
 def main():

@@ -102,20 +102,50 @@ def judge_one(tok, model, prompt, response, max_new_tokens=64):
     return parse_json(generated)
 
 
+def _cache_key(model_id, prompt, response):
+    import hashlib
+    payload = json.dumps({"model": model_id, "prompt": prompt, "response": response}, sort_keys=True)
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
 def main():
+    from common.data import repo_path, write_jsonl
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="configs/feedback.yaml")
-    ap.add_argument("--input", help="Optional generated JSONL file to inspect")
+    ap.add_argument("--input", help="Optional single generated JSONL file to judge (default: every generated_*.jsonl)")
+    ap.add_argument("--policies", nargs="*", default=["sft", "dpo", "ppo", "grpo"])
     args = ap.parse_args()
     cfg = load_yaml(args.config)
+    outdir = repo_path(cfg["results_dir"]) / "task4_safety"
+    inputs = [Path(args.input)] if args.input else [outdir / f"generated_{p}.jsonl" for p in args.policies]
+    missing = [str(p) for p in inputs if not repo_path(p).exists()]
+    if missing:
+        raise SystemExit("Generate responses first; missing: " + ", ".join(missing))
+
     tok, model = load_judge(cfg)
     print("Fixed Task 4 judge loaded:", cfg["ai_judge_model"])
-    if args.input:
-        rows = read_jsonl(args.input)
-        print("Input rows:", len(rows))
-    raise NotImplementedError(
-        "TODO(student): apply judge_one to your frozen-policy response files, cache the labels, and implement the required Task 4 aggregation."
-    )
+    cache_path = outdir / "judge_cache.json"
+    cache = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
+    max_new = int(cfg.get("judge_max_new_tokens", 64))
+    for path in inputs:
+        rows = read_jsonl(path)
+        print("Input rows:", len(rows), path)
+        judged = []
+        for i, row in enumerate(rows):
+            key = _cache_key(cfg["ai_judge_model"], row["prompt"], row["response"])
+            if key not in cache:
+                cache[key] = judge_one(tok, model, row["prompt"], row["response"], max_new_tokens=max_new)
+                if (i + 1) % 25 == 0:
+                    cache_path.write_text(json.dumps(cache), encoding="utf-8")
+                    print(f"  judged {i + 1}/{len(rows)}", flush=True)
+            res = cache[key]
+            judged.append(dict(row) | {"judge_label": res["label"], "judge_confidence": res["confidence"],
+                                       "judge_rationale_tag": res["rationale_tag"]})
+        cache_path.write_text(json.dumps(cache), encoding="utf-8")
+        name = repo_path(path).name.replace("generated_", "judged_")
+        write_jsonl(outdir / name, judged)
+        print("  wrote", outdir / name)
 
 
 if __name__ == "__main__":

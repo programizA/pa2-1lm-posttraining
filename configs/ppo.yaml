@@ -29,6 +29,11 @@ eval_max_response_length: 768
 reward_max_length: 1280
 max_grad_norm: 1.0
 
+# --- held-out evaluation protocol (added; identical for every PPO/GRPO condition) ---
+eval_prompts: 64          # first 64 prompts of rl_prompt_pool_eval
+eval_batch_size: 4
+stability_approx_kl_threshold: 0.02   # an update epoch counts as "unstable" above this approx KL(old||new)
+
 output: outputs/task2_ppo/standard
 results_dir: results/task2_ppo
 cached_rollouts: cached/ppo_rollout.pt

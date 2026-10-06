@@ -13,3 +13,9 @@ max_grad_norm: 1.0
 standard_output: outputs/task1_dpo/standard
 length_output: outputs/task1_dpo/length_balanced
 results_dir: results/task1_dpo
+
+# --- evaluation protocol (added; identical for every DPO condition) ---
+eval_batch_size: 4
+eval_generation_prompts: 128   # first 128 unique prompts of the held-out pair file
+max_prompt_length: 512
+reward_max_length: 1280

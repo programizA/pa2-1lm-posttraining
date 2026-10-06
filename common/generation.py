@@ -48,12 +48,18 @@ def batch_generate(
         "do_sample": do_sample,
         "pad_token_id": tokenizer.pad_token_id,
         "eos_token_id": tokenizer.eos_token_id,
+        # Trainable policies set config.use_cache=False for gradient checkpointing; generation
+        # must still use the KV cache or rollouts become quadratically slow.
+        "use_cache": True,
     }
     if do_sample:
         kwargs.update({"temperature": temperature, "top_p": top_p})
 
     with torch.inference_mode():
         seq = model.generate(**enc, **kwargs)
+    # Leave inference mode: inference tensors cannot be reused as inputs to a forward pass
+    # whose activations are saved for backward (the PPO/GRPO update on these rollouts).
+    seq = seq.clone()
     if was_training:
         model.train()
 

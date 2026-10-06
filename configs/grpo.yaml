@@ -12,6 +12,16 @@ max_prompt_length: 256
 max_completion_length: 512
 mask_truncated_completions: true
 max_grad_norm: 1.0
+# --- held-out evaluation protocol (added; same pool/cap/decoding as PPO for comparability) ---
+eval_prompts: 64
+eval_batch_size: 4
+eval_max_response_length: 768
+reward_max_length: 1280
+informative_std_tol: 1.0e-6        # a group is informative when its reward std exceeds this
+# Dr. GRPO keeps the std-normalised advantage here so the fork isolates the 1/|o| length
+# normalisation only (Liu et al. also drop the std term; set to false to reproduce that too).
+dr_grpo_keep_std_normalization: true
+
 output: outputs/task3_grpo/standard
 results_dir: results/task3_grpo
 group_cache: cached/grpo_k_cache.jsonl

@@ -213,22 +213,29 @@ def value_parameter_groups(model, lora_lr: float, head_lr: float):
 
 
 def token_values(value_model, input_ids, attention_mask):
-    backbone = getattr(value_model, value_model.base_model_prefix)
+    # Resolve the bare transformer backbone. For a PEFT-wrapped critic, getattr(peft, "model")
+    # returns the whole *SequenceClassification* model (which would also run the pooled head
+    # internally); unwrapping first gives the decoder stack (LoRA layers still active).
+    base = value_model.get_base_model() if isinstance(value_model, PeftModel) else value_model
+    backbone = getattr(base, base.base_model_prefix)
     outputs = backbone(
         input_ids=input_ids,
         attention_mask=attention_mask,
-        output_hidden_states=True,
         return_dict=True,
         use_cache=False,
     )
-    hidden = outputs.hidden_states[-1]
-    if hasattr(value_model, "score"):
-        head = value_model.score
-    elif hasattr(value_model, "classifier"):
-        head = value_model.classifier
+    # Final-norm hidden states: exactly what *ForSequenceClassification feeds its score head.
+    hidden = outputs.last_hidden_state
+    if hasattr(base, "score"):
+        head = base.score
+    elif hasattr(base, "classifier"):
+        head = base.classifier
     else:
         raise RuntimeError("Could not locate scalar value head")
-    return head(hidden).squeeze(-1)
+    # The trainable head copy may be kept in float32 for stable optimisation; match its dtype.
+    head_params = list(head.parameters())
+    head_dtype = ([p for p in head_params if p.requires_grad] or head_params)[0].dtype
+    return head(hidden.to(head_dtype)).squeeze(-1).float()
 
 
 def trainable_parameters(model):

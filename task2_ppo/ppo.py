@@ -52,13 +52,38 @@ def ppo_policy_loss(new_logp, old_logp, advantage, mask, eps=0.2):
     surr1 = ratio * advantage
     surr2 = ratio.clamp(1.0 - eps, 1.0 + eps) * advantage
 
-    # Starter implementation: students must validate the clipping geometry carefully.
-    objective = torch.maximum(surr1, surr2)
+    # FIX (deliberate starter defect): the starter used torch.maximum. PPO's clipped surrogate is
+    # the PESSIMISTIC bound E[min(rho*A, clip(rho)*A)]. Taking the max removes the trust region:
+    # for A>0 it keeps the unclipped term even when rho > 1+eps (unbounded push upward), and for
+    # A<0 it keeps the clipped constant when rho < 1-eps, so the update is never restrained.
+    objective = torch.minimum(surr1, surr2)
 
     loss = -masked_mean(objective, mask)
-    affected = ((ratio < (1.0 - eps)) | (ratio > (1.0 + eps))).float()
-    clip_fraction = masked_mean(affected, mask)
+    outside = ((ratio < (1.0 - eps)) | (ratio > (1.0 + eps))).float()
+    clip_fraction = masked_mean(outside, mask)
     return loss, ratio.detach(), clip_fraction.detach()
+
+
+def clip_diagnostics(ratio, advantage, mask, eps):
+    """Clip fraction and affected-token fraction under one response mask.
+
+    clip_fraction: tokens whose ratio lies outside [1-eps, 1+eps] (manual definition).
+    affected_fraction: tokens where the min() actually selects the clipped term, so the token's
+        gradient is zeroed. This happens only when the ratio has left the interval in the
+        direction the advantage pushes it (rho>1+eps with A>0, or rho<1-eps with A<0).
+    """
+    ratio = ratio.detach()
+    advantage = advantage.detach()
+    outside = (ratio < (1.0 - eps)) | (ratio > (1.0 + eps))
+    affected = ((ratio > 1.0 + eps) & (advantage > 0)) | ((ratio < 1.0 - eps) & (advantage < 0))
+    surr1 = ratio * advantage
+    surr2 = ratio.clamp(1.0 - eps, 1.0 + eps) * advantage
+    return {
+        "clip_fraction": float(masked_mean(outside.float(), mask).item()),
+        "affected_fraction": float(masked_mean(affected.float(), mask).item()),
+        "clipped_surrogate": float(masked_mean(torch.minimum(surr1, surr2), mask).item()),
+        "unclipped_surrogate": float(masked_mean(surr1, mask).item()),
+    }
 
 
 def value_mse_loss(predicted_values, returns, mask):
