@@ -1,0 +1,152 @@
+{
+  "n_rollouts": 32,
+  "valid_tokens": 8814,
+  "reward_source": "cache (effective terminal reward)",
+  "value_source": "cache",
+  "rebuild_notes": {
+    "length_mismatch": 0,
+    "prompt_match": {
+      "eval:prompt_id": 32
+    },
+    "response_ids": {
+      "retokenised": 32
+    },
+    "count_field_mismatch": 0
+  },
+  "reconstruction_check": {
+    "mean_abs_ref_logprob_error": 0.048672374337911606,
+    "max_per_rollout": 0.44492101669311523,
+    "rollouts_over_0.05": 3
+  },
+  "terminated_with_eos_fraction": 0.75,
+  "task_reward_mean": 1.1042327880859375,
+  "raw_terminal_reward_mean": 1.3542327880859375,
+  "kl_token_mean_old_vs_ref": 0.0006716669304296374,
+  "midpoint_vs_cached_old_ratio": {
+    "mean": 1.0119370222091675,
+    "std": 0.5335447788238525,
+    "quantiles": {
+      "0.01": 0.3796495497226715,
+      "0.05": 0.9177384376525879,
+      "0.25": 0.9935868978500366,
+      "0.5": 0.9999997615814209,
+      "0.75": 1.004565954208374,
+      "0.95": 1.0664284229278564,
+      "0.99": 1.3454638719558716
+    },
+    "abs_log_ratio_mean": 0.06625871360301971
+  },
+  "per_epsilon": {
+    "0.05": {
+      "at_midpoint": {
+        "clip_fraction": 0.15350578725337982,
+        "affected_fraction": 0.07646925002336502,
+        "clipped_surrogate": -0.01133170910179615,
+        "unclipped_surrogate": 0.0003604235243983567
+      },
+      "simulated_steps": [
+        {
+          "updates_applied": 0,
+          "loss": 0.011331710760714486,
+          "grad_norm_preclip": 0.06157109513878822,
+          "clip_fraction": 0.15350578725337982,
+          "affected_fraction": 0.07646925002336502,
+          "clipped_surrogate": -0.01133170910179615,
+          "unclipped_surrogate": 0.0003604235243983567
+        },
+        {
+          "updates_applied": 1,
+          "loss": 0.011315302166622132,
+          "grad_norm_preclip": 0.06021135300397873,
+          "clip_fraction": 0.1524846851825714,
+          "affected_fraction": 0.07635580003261566,
+          "clipped_surrogate": -0.011315302923321724,
+          "unclipped_surrogate": 0.00039151543751358986
+        },
+        {
+          "updates_applied": 2,
+          "loss": null,
+          "grad_norm_preclip": null,
+          "clip_fraction": 0.15282505750656128,
+          "affected_fraction": 0.07635580003261566,
+          "clipped_surrogate": -0.011294631287455559,
+          "unclipped_surrogate": 0.00039536604890599847
+        }
+      ]
+    },
+    "0.2": {
+      "at_midpoint": {
+        "clip_fraction": 0.04129793494939804,
+        "affected_fraction": 0.01996823213994503,
+        "clipped_surrogate": -0.007844170555472374,
+        "unclipped_surrogate": 0.0003604235243983567
+      },
+      "simulated_steps": [
+        {
+          "updates_applied": 0,
+          "loss": 0.007844170046155341,
+          "grad_norm_preclip": 0.061491820961236954,
+          "clip_fraction": 0.04129793494939804,
+          "affected_fraction": 0.01996823213994503,
+          "clipped_surrogate": -0.007844170555472374,
+          "unclipped_surrogate": 0.0003604235243983567
+        },
+        {
+          "updates_applied": 1,
+          "loss": 0.007814110977051314,
+          "grad_norm_preclip": 0.06571061164140701,
+          "clip_fraction": 0.041184477508068085,
+          "affected_fraction": 0.019741320982575417,
+          "clipped_surrogate": -0.007814111188054085,
+          "unclipped_surrogate": 0.0003634700260590762
+        },
+        {
+          "updates_applied": 2,
+          "loss": null,
+          "grad_norm_preclip": null,
+          "clip_fraction": 0.04129793494939804,
+          "affected_fraction": 0.019854776561260223,
+          "clipped_surrogate": -0.007813711650669575,
+          "unclipped_surrogate": 0.000370915251551196
+        }
+      ]
+    },
+    "0.5": {
+      "at_midpoint": {
+        "clip_fraction": 0.02098933607339859,
+        "affected_fraction": 0.009984116069972515,
+        "clipped_surrogate": -0.0053029293194413185,
+        "unclipped_surrogate": 0.0003604235243983567
+      },
+      "simulated_steps": [
+        {
+          "updates_applied": 0,
+          "loss": 0.00530292879557237,
+          "grad_norm_preclip": 0.06755068898200989,
+          "clip_fraction": 0.02098933607339859,
+          "affected_fraction": 0.009984116069972515,
+          "clipped_surrogate": -0.0053029293194413185,
+          "unclipped_surrogate": 0.0003604235243983567
+        },
+        {
+          "updates_applied": 1,
+          "loss": 0.0052645058603957295,
+          "grad_norm_preclip": 0.0646234080195427,
+          "clip_fraction": 0.020875878632068634,
+          "affected_fraction": 0.009984116069972515,
+          "clipped_surrogate": -0.0052645024843513966,
+          "unclipped_surrogate": 0.0003989769029431045
+        },
+        {
+          "updates_applied": 2,
+          "loss": null,
+          "grad_norm_preclip": null,
+          "clip_fraction": 0.02098933607339859,
+          "affected_fraction": 0.009984116069972515,
+          "clipped_surrogate": -0.005230439826846123,
+          "unclipped_surrogate": 0.00043161064968444407
+        }
+      ]
+    }
+  }
+}

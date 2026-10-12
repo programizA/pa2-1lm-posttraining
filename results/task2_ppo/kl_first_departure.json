@@ -1,0 +1,26 @@
+{
+  "rule": "first update with |metric(fork) - metric(anchor)| > 1 sd of that metric over the standard 20-update run",
+  "anchor_kl_beta": 0.2,
+  "first_update": {
+    "0_vs_0.2": {
+      "rm_score_mean": null,
+      "kl_token_mean": 3,
+      "kl_seq_mean": 8,
+      "entropy_token_mean": null,
+      "response_tokens_mean": null,
+      "value_loss": null,
+      "explained_variance": null,
+      "clip_fraction": null
+    },
+    "0.1_vs_0.2": {
+      "rm_score_mean": null,
+      "kl_token_mean": 3,
+      "kl_seq_mean": 8,
+      "entropy_token_mean": null,
+      "response_tokens_mean": null,
+      "value_loss": null,
+      "explained_variance": null,
+      "clip_fraction": null
+    }
+  }
+}
