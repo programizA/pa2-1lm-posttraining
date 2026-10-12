@@ -1,0 +1,1 @@
+{"midpoint": "ppo_midpoint_policy", "prompts": "first 5 rl_prompt_pool_train prompts", "lora_B_matrices": 56, "lora_B_norm_total": 0.12887268140912056, "mean_abs_logprob_change": 0.009387216530740261, "max_abs_logprob_change": 0.14032745361328125}
