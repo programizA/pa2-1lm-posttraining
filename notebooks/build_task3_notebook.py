@@ -64,6 +64,15 @@ code(r'''
 %pip install -q -r requirements.txt
 ''')
 code(r'''
+# OPTIONAL resume: if an earlier version of this notebook was attached via "Add Input -> Your Work",
+# copy its finished adapters and results here, so training/evaluation that already ran is skipped.
+import glob
+for sub in ("outputs/task3_grpo", "results/task3_grpo"):
+    for src in sorted(glob.glob(f"/kaggle/input/**/pa2/{sub}", recursive=True)):
+        shutil.copytree(src, os.path.join(WORK, sub), dirs_exist_ok=True)
+        print("restored", src)
+''')
+code(r'''
 import transformers, peft, huggingface_hub, torch
 print(transformers.__version__, peft.__version__, huggingface_hub.__version__, torch.__version__, torch.cuda.is_available())
 # Expect 4.57.1 0.17.1 0.36.2 ... True. The pip "dependency conflict" warnings about gradio/diffusers are harmless.
@@ -124,6 +133,18 @@ but contribute no gradient themselves.
 - **Dr. GRPO** divides by a constant (the generation cap) instead, so every token weighs the same no matter how
   long its completion is. Long completions then carry proportionally more total weight.
 """)
+
+code(r'''
+# How far is the supplied midpoint from the base model? (adapter on vs off on a few training prompts)
+from common.rl_utils import adapter_effect
+from common.models import load_policy, load_tokenizer, clear_gpu
+from common.data import read_jsonl, prompt_messages
+_tok = load_tokenizer(cfg["base_model"])
+_mid = load_policy(cfg, adapter_path=cfg["paths"]["grpo_midpoint_policy"], trainable=False)
+print(adapter_effect(_mid, _tok, [prompt_messages(r) for r in read_jsonl(cfg["paths"]["rl_prompt_train"])[:5]]))
+print("A mean change of ~0.001 nats per token means the midpoint is almost the base model, i.e. KL to the reference starts near 0.")
+del _mid; clear_gpu()
+''')
 
 # =====================================================================================
 md(r"""

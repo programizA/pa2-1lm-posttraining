@@ -25,7 +25,8 @@ from common.data import load_yaml, prompt_messages, read_jsonl, repo_path
 from common.generation import score_reward_pairs
 from common.logging_utils import load_json, save_json
 from common.metrics import masked_mean
-from common.models import load_policy, load_reward_model, load_tokenizer, load_value_model, token_values, trainable_parameters
+from common.models import (load_policy, load_reward_model, load_tokenizer, load_value_model, reference_mode,
+                           token_values, trainable_parameters)
 from common.rl_utils import disable_dropout, model_device, row_id, run_module, token_logprobs
 from task2_ppo.ppo import clip_diagnostics, compute_gae, normalize_advantages, ppo_policy_loss, shaped_rewards
 
@@ -64,49 +65,96 @@ def _as_1d(x):
     return t
 
 
-def rebuild_batch(rows, cfg, tok, prompt_pool):
-    """Turn cached rows into padded tensors: sequences, attention, response ids/mask, old/ref logp."""
-    by_id = {}
-    for i, r in enumerate(prompt_pool):
-        by_id.setdefault(row_id(r, i), r)
-        if "source_index" in r:
-            by_id.setdefault(str(r["source_index"]), r)
+ID_KEYS = ("prompt_id", "source_index", "id")
 
-    items, notes = [], {"length_mismatch": 0, "prompt_from_pool": 0}
+
+def _index_pools(pools):
+    """(key, value) -> prompt row, over every pool, for every identifier field a row carries."""
+    idx = {}
+    for pool_name, pool in pools.items():
+        for r in pool:
+            for k in ID_KEYS:
+                if r.get(k) is not None:
+                    idx.setdefault((k, str(r[k])), (pool_name, r))
+    return idx
+
+
+def _find_prompt(row, idx):
+    # Same field first (prompt_id <-> prompt_id), then any identifier field of the pool.
+    for k in ID_KEYS:
+        if row.get(k) is not None and (k, str(row[k])) in idx:
+            pool_name, r = idx[(k, str(row[k]))]
+            return r, f"{pool_name}:{k}"
+    for k in ID_KEYS:
+        if row.get(k) is None:
+            continue
+        for k2 in ID_KEYS:
+            if (k2, str(row[k])) in idx:
+                pool_name, r = idx[(k2, str(row[k]))]
+                return r, f"{pool_name}:{k}->{k2}"
+    return None, None
+
+
+def _response_ids(row, tok, n_old):
+    """Exact cached token ids if stored, else re-tokenise the text (+ EOS if the rollout terminated)."""
+    ids = _first(row, ["response_ids", "response_token_ids", "completion_ids"])
+    rt = row.get("response_tokens")
+    if ids is None and (isinstance(rt, (list, tuple)) or torch.is_tensor(rt)):
+        ids = rt
+    if ids is not None:
+        return [int(x) for x in _as_1d(ids).long().tolist()], "cached_ids"
+    ids = tok(row["response"], add_special_tokens=False)["input_ids"]
+    ended = row.get("terminated_with_eos")
+    if ended is True or (ended is None and len(ids) == n_old - 1):
+        ids = ids + [tok.eos_token_id]
+    return ids, "retokenised"
+
+
+def rebuild_batch(rows, cfg, tok, prompt_pools):
+    """Turn cached rows into padded tensors: sequences, attention, response ids/mask, old/ref logp.
+
+    The released cache stores the response text, old/ref log-probs, critic values and the terminal
+    reward, but not the prompt; prompts are recovered from the course prompt pools by identifier.
+    """
+    idx = _index_pools(prompt_pools)
+    items = []
+    notes = {"length_mismatch": 0, "prompt_match": {}, "response_ids": {}, "count_field_mismatch": 0}
     for row in rows:
         msgs = _first(row, ["messages", "prompt_messages"])
+        if msgs is None and isinstance(row.get("prompt"), list):
+            msgs = row["prompt"]
+        if msgs is None and isinstance(row.get("prompt"), str):
+            msgs = [{"role": "user", "content": row["prompt"]}]
         if msgs is None:
-            p = _first(row, ["prompt", "query"])
-            if isinstance(p, list):
-                msgs = p
-            elif isinstance(p, str):
-                msgs = [{"role": "user", "content": p}]
-        if msgs is None:
-            pr = by_id.get(str(row["source_index"]))
+            pr, how = _find_prompt(row, idx)
             if pr is None:
-                raise KeyError(f"Cannot recover prompt for source_index={row['source_index']}")
+                example = {k: row.get(k) for k in ID_KEYS if k in row}
+                pool_examples = {name: {k: pool[0].get(k) for k in ID_KEYS if k in pool[0]} for name, pool in prompt_pools.items()}
+                raise KeyError(f"Cannot find the prompt for cached rollout {example} in the prompt pools "
+                               f"(pool id examples: {pool_examples})")
             msgs = prompt_messages(pr)
-            notes["prompt_from_pool"] += 1
+            notes["prompt_match"][how] = notes["prompt_match"].get(how, 0) + 1
         prompt_ids = _first(row, ["query_ids", "prompt_ids", "query_token_ids"])
         if prompt_ids is None:
             prompt_ids = tok.apply_chat_template(msgs, tokenize=True, add_generation_prompt=True)
         prompt_ids = [int(x) for x in _as_1d(prompt_ids).long().tolist()]
-        resp_ids = _first(row, ["response_ids", "response_token_ids", "completion_ids"])
         old = _as_1d(row["old_logprobs"])
-        if resp_ids is None:
-            resp_ids = tok(row["response"], add_special_tokens=False)["input_ids"]
-            if len(resp_ids) == len(old) - 1:  # cached rollouts include the terminating EOS
-                resp_ids = resp_ids + [tok.eos_token_id]
-        resp_ids = [int(x) for x in _as_1d(resp_ids).long().tolist()]
+        resp_ids, src = _response_ids(row, tok, len(old))
+        notes["response_ids"][src] = notes["response_ids"].get(src, 0) + 1
+        if isinstance(row.get("response_tokens"), (int, float)) and int(row["response_tokens"]) != len(old):
+            notes["count_field_mismatch"] += 1
         T = min(len(resp_ids), len(old))
         if len(resp_ids) != len(old):
             notes["length_mismatch"] += 1
         items.append({
             "msgs": msgs, "prompt_ids": prompt_ids, "resp_ids": resp_ids[:T],
             "old": old[:T], "ref": _as_1d(row["ref_logprobs"])[:T],
-            "reward": _first(row, ["reward", "score", "rm_score", "task_reward"]),
+            # The staff's terminal reward after the missing-EOS penalty, when the cache has it.
+            "reward": _first(row, ["effective_terminal_reward", "reward", "score", "rm_score", "task_reward"]),
+            "raw_reward": _first(row, ["raw_terminal_reward"]),
             "values": _first(row, ["values", "old_values", "value"]),
-            "response": row["response"], "source_index": str(row["source_index"]),
+            "terminated_with_eos": row.get("terminated_with_eos"), "clipped_at_max": row.get("clipped_at_max"),
+            "response": row["response"], "source_index": str(row.get("source_index")),
         })
 
     P = max(len(it["prompt_ids"]) for it in items)
@@ -135,7 +183,10 @@ def cached_batch_study(cfg, args):
     rows = load_cached_rollouts(cfg["cached_rollouts"])
     print("Cached PPO rollouts:", len(rows), "| keys:", sorted(rows[0].keys()))
     tok = load_tokenizer(cfg["base_model"])
-    batch = rebuild_batch(rows, cfg, tok, read_jsonl(cfg["paths"]["rl_prompt_train"]))
+    pools = {"train": read_jsonl(cfg["paths"]["rl_prompt_train"])}
+    if repo_path(cfg["paths"]["rl_prompt_eval"]).exists():
+        pools["eval"] = read_jsonl(cfg["paths"]["rl_prompt_eval"])
+    batch = rebuild_batch(rows, cfg, tok, pools)
     print("rebuild notes:", batch["notes"])
 
     policy = load_policy(cfg, adapter_path=cfg["paths"]["ppo_midpoint_policy"], trainable=True)
@@ -148,7 +199,7 @@ def cached_batch_study(cfg, args):
     # Rewards: cached if present, else re-scored with the fixed reward model (+ missing-EOS penalty).
     if all(it["reward"] is not None for it in batch["items"]):
         task_reward = torch.tensor([float(_as_1d(it["reward"]).sum()) for it in batch["items"]], device=dev)
-        reward_source = "cache"
+        reward_source = "cache (effective terminal reward)"
     else:
         rm, rm_tok = load_reward_model(cfg)
         task_reward = score_reward_pairs(rm, rm_tok, [it["msgs"] for it in batch["items"]],
@@ -182,14 +233,30 @@ def cached_batch_study(cfg, args):
     chunks = [slice(i, min(i + mb, seq.shape[0])) for i in range(0, seq.shape[0], mb)]
     with torch.no_grad():
         mid_lp = torch.cat([token_logprobs(policy, seq[c], attn[c], pw, resp[c])[0] for c in chunks])
+        # Reconstruction check: the reference model is fixed, so our reference log-probs on the rebuilt
+        # (prompt, response) must reproduce the cached ones up to half-precision noise.
+        with reference_mode(policy):
+            our_ref = torch.cat([token_logprobs(policy, seq[c], attn[c], pw, resp[c])[0] for c in chunks])
+    ref_err = ((our_ref - ref).abs() * mask).sum(-1) / mask.sum(-1).clamp_min(1)
+    recon = {"mean_abs_ref_logprob_error": float(ref_err.mean()), "max_per_rollout": float(ref_err.max()),
+             "rollouts_over_0.05": int((ref_err > 0.05).sum())}
+    print("reconstruction check (our vs cached reference log-probs):", recon)
+    if recon["rollouts_over_0.05"]:
+        print("WARNING: some rebuilt rollouts do not reproduce the cached reference log-probs; their prompt or "
+              "tokenisation may differ from what the staff used. Treat the cached-batch numbers with caution.")
     ratio0 = torch.exp(mid_lp - old)
     valid = ratio0[mask.bool()].cpu().numpy()
     log_r = np.log(valid)
 
+    raw = [it["raw_reward"] for it in batch["items"]]
     out = {
         "n_rollouts": len(batch["items"]), "valid_tokens": int(mask.sum().item()),
         "reward_source": reward_source, "value_source": value_source, "rebuild_notes": batch["notes"],
-        "task_reward_mean": float(task_reward.mean()), "kl_token_mean_old_vs_ref": float(masked_mean(old - ref, mask)),
+        "reconstruction_check": recon,
+        "terminated_with_eos_fraction": float(np.mean([bool(it["terminated_with_eos"]) for it in batch["items"]])),
+        "task_reward_mean": float(task_reward.mean()),
+        "raw_terminal_reward_mean": float(np.mean(raw)) if all(r is not None for r in raw) else None,
+        "kl_token_mean_old_vs_ref": float(masked_mean(old - ref, mask)),
         "midpoint_vs_cached_old_ratio": {
             "mean": float(valid.mean()), "std": float(valid.std()),
             "quantiles": {q: float(np.quantile(valid, q)) for q in (0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)},

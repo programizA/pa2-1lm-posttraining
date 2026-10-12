@@ -66,6 +66,15 @@ code(r'''
 %pip install -q -r requirements.txt
 ''')
 code(r'''
+# OPTIONAL resume: if an earlier version of this notebook was attached via "Add Input -> Your Work",
+# copy its finished adapters and results here, so training/evaluation that already ran is skipped.
+import glob
+for sub in ("outputs/task2_ppo", "results/task2_ppo"):
+    for src in sorted(glob.glob(f"/kaggle/input/**/pa2/{sub}", recursive=True)):
+        shutil.copytree(src, os.path.join(WORK, sub), dirs_exist_ok=True)
+        print("restored", src)
+''')
+code(r'''
 import transformers, peft, huggingface_hub, torch
 print(transformers.__version__, peft.__version__, huggingface_hub.__version__, torch.__version__, torch.cuda.is_available())
 # Expect 4.57.1 0.17.1 0.36.2 ... True. The pip "dependency conflict" warnings about gradio/diffusers are harmless.
@@ -166,6 +175,18 @@ print("(Only the difference between scores matters; the scale is arbitrary.)")
 critic = load_value_model(cfg, cfg["paths"]["ppo_midpoint_value"], train_mode="frozen")
 print("critic parameters: %.0fM" % (count_parameters(critic)[0] / 1e6))
 del rm, critic; clear_gpu()
+''')
+
+code(r'''
+# How far is the supplied midpoint from the base model? (adapter on vs off on a few training prompts)
+from common.rl_utils import adapter_effect
+from common.models import load_policy, load_tokenizer, clear_gpu
+from common.data import read_jsonl, prompt_messages
+_tok = load_tokenizer(cfg["base_model"])
+_mid = load_policy(cfg, adapter_path=cfg["paths"]["ppo_midpoint_policy"], trainable=False)
+print(adapter_effect(_mid, _tok, [prompt_messages(r) for r in read_jsonl(cfg["paths"]["rl_prompt_train"])[:5]]))
+print("A mean change of ~0.001 nats per token means the midpoint is almost the base model, i.e. KL to the reference starts near 0.")
+del _mid; clear_gpu()
 ''')
 
 # =====================================================================================
@@ -362,7 +383,8 @@ else:
     save_json(cache_json, cached_batch_study(cfg, SimpleNamespace(sim_steps=int(cfg["ppo_epochs"]), micro_batch=4)))
 clear_gpu()
 c = load_json(cache_json)
-print({k: c[k] for k in ["n_rollouts", "valid_tokens", "reward_source", "value_source", "rebuild_notes"]})
+print({k: c[k] for k in ["n_rollouts", "valid_tokens", "reward_source", "value_source", "rebuild_notes",
+                         "reconstruction_check", "terminated_with_eos_fraction", "raw_terminal_reward_mean"]})
 print("ratio of midpoint vs cached old policy:", {k: round(v, 4) if isinstance(v, float) else v
                                                for k, v in c["midpoint_vs_cached_old_ratio"].items()})
 rows = []
@@ -380,8 +402,11 @@ hardly changes across updates, that is itself the finding (clipping only bites o
 takes many updates or a larger step size). The first row compares the midpoint with the policy that generated
 the cache, which may differ from it.
 
-**Check:** `rebuild_notes` should show `length_mismatch: 0` (each cached response re-tokenises to exactly as
-many tokens as there are cached log-probs). If it isn't 0, tell me before trusting this table.
+**Check before trusting this table.** The cache stores responses and log-probs but not the prompts, so each rollout's
+prompt is looked up in the prompt pools by its `prompt_id` (`rebuild_notes` says how each was matched).
+`reconstruction_check` then recomputes the **reference** model's log-probs on the rebuilt (prompt, response) and compares
+them with the cached ones: the reference never changes, so if the rebuild is right they agree to within half-precision
+noise (mean error well under 0.01). If `rollouts_over_0.05` is not 0, tell me.
 """)
 
 # =====================================================================================

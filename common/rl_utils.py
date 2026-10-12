@@ -116,6 +116,29 @@ def sequence_logprobs(model, batch: dict):
     return torch.stack(seq), mask.sum(-1)
 
 
+@torch.no_grad()
+def adapter_effect(model, tokenizer, messages_list) -> dict:
+    """How far a LoRA adapter moves the model from its base (adapter on vs off).
+
+    Reports the norms of the adapter's B matrices (zero means the adapter is a no-op) and, on a few
+    teacher-forced prompts, the mean and max absolute change in next-token log-probability.
+    """
+    from common.models import reference_mode
+
+    b_norms = [float(p.detach().float().norm()) for n, p in model.named_parameters() if "lora_B" in n]
+    diffs = []
+    dev = model_device(model)
+    for msgs in messages_list:
+        ids = tokenizer.apply_chat_template(msgs, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(dev)
+        on = torch.log_softmax(model(input_ids=ids).logits[0, :-1].float(), -1).gather(-1, ids[0, 1:, None]).squeeze(-1)
+        with reference_mode(model):
+            off = torch.log_softmax(model(input_ids=ids).logits[0, :-1].float(), -1).gather(-1, ids[0, 1:, None]).squeeze(-1)
+        diffs.append((on - off).abs())
+    d = torch.cat(diffs) if diffs else torch.zeros(1)
+    return {"lora_B_matrices": len(b_norms), "lora_B_norm_total": float(sum(b_norms)),
+            "mean_abs_logprob_change": float(d.mean()), "max_abs_logprob_change": float(d.max())}
+
+
 def batch_to(batch: dict, device):
     return {k: (v.to(device) if torch.is_tensor(v) else v) for k, v in batch.items()}
 

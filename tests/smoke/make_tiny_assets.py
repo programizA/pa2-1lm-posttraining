@@ -102,7 +102,9 @@ def main(root: Path):
     jdump(d / "dpo_length_balanced_train.jsonl", [pref(200 + i, strata[i % 3]) for i in range(24)])
     jdump(d / "dpo_length_stratified_eval.jsonl", [pref(300 + i, strata[i % 3]) for i in range(12)])
     (d / "word_limit_prompts.jsonl").write_text((REPO / "data/word_limit_prompts.jsonl").read_text())
-    rlp = lambda i: {"source_index": f"uf:{i}", "messages": [{"role": "user", "content": sentence(rng, 10) + "?"}]}
+    # Same fields as the released pools: prompt_id, source_index, messages.
+    rlp = lambda i: {"prompt_id": f"uf-{i:05d}", "source_index": 50000 + i, "source_split": "train",
+                     "messages": [{"role": "user", "content": sentence(rng, 10) + "?"}]}
     train_pool = [rlp(i) for i in range(30)]
     jdump(d / "rl_prompt_pool_train.jsonl", train_pool)
     jdump(d / "rl_prompt_pool_eval.jsonl", [rlp(1000 + i) for i in range(10)])
@@ -135,13 +137,26 @@ def main(root: Path):
     # --- caches
     c = root / "cached"
     c.mkdir(parents=True, exist_ok=True)
+    # Mirrors the released cache schema: no prompt text, the prompt is referenced by prompt_id, and
+    # source_index is an index that does NOT match the pool's own source_index field. Reference
+    # log-probs come from the real (tiny) reference model so the reconstruction check can pass.
+    ref_model = Qwen2ForCausalLM.from_pretrained(m / "base").eval()
     roll = []
-    for r in train_pool[:6]:
+    for j, r in enumerate(train_pool[:6]):
         resp = sentence(rng, rng.randint(4, 12))
-        n = len(tok(resp, add_special_tokens=False)["input_ids"]) + 1  # + EOS
-        roll.append({"source_index": r["source_index"], "response": resp,
-                     "old_policy_logprobs": (-6.4 + 0.3 * torch.randn(n)).tolist(),
-                     "reference_logprobs": (-6.4 + 0.3 * torch.randn(n)).tolist()})
+        resp_ids = tok(resp, add_special_tokens=False)["input_ids"] + [tok.eos_token_id]
+        prompt_ids = tok.apply_chat_template(r["messages"], tokenize=True, add_generation_prompt=True)
+        ids = torch.tensor([prompt_ids + resp_ids])
+        with torch.no_grad():
+            lp = torch.log_softmax(ref_model(ids).logits[0, len(prompt_ids) - 1 : -1].float(), -1)
+        ref_lp = lp.gather(-1, torch.tensor(resp_ids)[:, None]).squeeze(-1)
+        n = len(resp_ids)
+        roll.append({"prompt_id": r["prompt_id"], "source_index": 124 + j, "response": resp,
+                     "response_tokens": resp_ids if j % 2 else n,  # both plausible encodings
+                     "old_logprobs": (ref_lp + 0.05 * torch.randn(n)).tolist(),
+                     "ref_logprobs": ref_lp.tolist(), "values": (0.1 * torch.randn(n)).tolist(),
+                     "raw_terminal_reward": 1.0, "effective_terminal_reward": 1.0,
+                     "terminated_with_eos": True, "clipped_at_max": False})
     torch.save(roll, c / "ppo_rollout.pt")
     kc = []
     for i in range(12):
