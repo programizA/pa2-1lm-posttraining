@@ -221,11 +221,16 @@ def cached_batch_study(cfg, args):
                 loss_total += float(loss_c.item())
                 ratios.append(ratio_c)
             ratio = torch.cat(ratios)
+            # Diagnostics of the weights BEFORE this step's update (k updates applied so far).
             d = clip_diagnostics(ratio, adv_n, mask, eps)
-            loss = torch.tensor(loss_total)
-            torch.nn.utils.clip_grad_norm_(params, float(cfg["max_grad_norm"]))
+            gnorm = float(torch.nn.utils.clip_grad_norm_(params, float(cfg["max_grad_norm"])))
             opt.step()
-            steps.append({"step": k, "loss": float(loss.item()), **d})
+            steps.append({"updates_applied": k, "loss": loss_total, "grad_norm_preclip": gnorm, **d})
+        # One more measurement after the final update, so the last step's effect is recorded too.
+        with torch.no_grad():
+            final_lp = torch.cat([token_logprobs(policy, seq[c], attn[c], pw, resp[c])[0] for c in chunks])
+        steps.append({"updates_applied": int(args.sim_steps), "loss": None, "grad_norm_preclip": None,
+                      **clip_diagnostics(torch.exp(final_lp - old), adv_n, mask, eps)})
         out["per_epsilon"][f"{eps:g}"] = {"at_midpoint": d0, "simulated_steps": steps}
         print(f"  eps={eps:g}: clip={d0['clip_fraction']:.4f} affected={d0['affected_fraction']:.4f} "
               f"surrogate={d0['clipped_surrogate']:.4f} (unclipped {d0['unclipped_surrogate']:.4f})")
