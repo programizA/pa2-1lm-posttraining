@@ -1,0 +1,94 @@
+{
+  "name": "length_balanced",
+  "adapter": "/kaggle/working/pa2/outputs/task1_dpo/length_balanced",
+  "beta_for_loss": 0.1,
+  "pairs_path": "data/dpo_length_stratified_eval.jsonl",
+  "pairs_dropped_indices": [
+    6,
+    7,
+    20,
+    22,
+    57,
+    76,
+    82,
+    144,
+    209
+  ],
+  "pairs": {
+    "overall": {
+      "n": 237,
+      "preference_accuracy": 0.5949367088607594,
+      "dpo_loss": 0.6763172145885757,
+      "margin": {
+        "n": 237,
+        "mean": 0.44088605083996735,
+        "std": 2.001455910620185,
+        "median": 0.2825450897216797,
+        "iqr": 2.00592041015625,
+        "min": -6.0775909423828125,
+        "max": 6.4032440185546875
+      },
+      "chosen_logratio_mean": -1.4621580260715403,
+      "rejected_logratio_mean": -1.9030440769115078,
+      "policy_likelihood_accuracy": 0.569620253164557,
+      "reference_likelihood_accuracy": 0.5654008438818565
+    },
+    "by_stratum": {
+      "length_matched": {
+        "n": 80,
+        "preference_accuracy": 0.5875,
+        "dpo_loss": 0.6786100525408983,
+        "margin": {
+          "n": 80,
+          "mean": 0.34389705657958985,
+          "std": 1.4210569305345038,
+          "median": 0.14470481872558594,
+          "iqr": 1.230447769165039,
+          "min": -3.2281646728515625,
+          "max": 5.866912841796875
+        },
+        "chosen_logratio_mean": -1.1280327796936036,
+        "rejected_logratio_mean": -1.4719298362731934,
+        "policy_likelihood_accuracy": 0.6125,
+        "reference_likelihood_accuracy": 0.6
+      },
+      "preferred_longer": {
+        "n": 78,
+        "preference_accuracy": 0.4358974358974359,
+        "dpo_loss": 0.7211240025667044,
+        "margin": {
+          "n": 78,
+          "mean": -0.4640687306722005,
+          "std": 1.9041626100587756,
+          "median": -0.2843170166015625,
+          "iqr": 2.376901626586914,
+          "min": -6.0775909423828125,
+          "max": 4.7017669677734375
+        },
+        "chosen_logratio_mean": -2.0892645028921275,
+        "rejected_logratio_mean": -1.6251957722199268,
+        "policy_likelihood_accuracy": 0.1282051282051282,
+        "reference_likelihood_accuracy": 0.1282051282051282
+      },
+      "rejected_longer": {
+        "n": 79,
+        "preference_accuracy": 0.759493670886076,
+        "dpo_loss": 0.6297557399242739,
+        "margin": {
+          "n": 79,
+          "mean": 1.432602411584009,
+          "std": 2.142654839701737,
+          "median": 1.2071456909179688,
+          "iqr": 2.8122940063476562,
+          "min": -4.1463775634765625,
+          "max": 6.4032440185546875
+        },
+        "chosen_logratio_mean": -1.1813442857959602,
+        "rejected_logratio_mean": -2.613946697379969,
+        "policy_likelihood_accuracy": 0.9620253164556962,
+        "reference_likelihood_accuracy": 0.9620253164556962
+      }
+    },
+    "dataset_preferred_longer_fraction": 0.46835443037974683
+  }
+}

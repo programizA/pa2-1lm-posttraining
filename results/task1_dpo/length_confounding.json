@@ -1,0 +1,568 @@
+{
+  "dataset_profiles": {
+    "standard_train": {
+      "n_pairs": 1500,
+      "preferred_longer_fraction": 0.554,
+      "chosen_words": {
+        "n": 1500,
+        "mean": 206.65,
+        "std": 177.13477213692403,
+        "median": 168.0,
+        "iqr": 277.0,
+        "min": 1.0,
+        "max": 821.0
+      },
+      "rejected_words": {
+        "n": 1500,
+        "mean": 177.21866666666668,
+        "std": 159.52569756904023,
+        "median": 130.0,
+        "iqr": 235.0,
+        "min": 0.0,
+        "max": 835.0
+      },
+      "log_length_ratio_chosen_over_rejected": {
+        "n": 1500,
+        "mean": 0.11574639864234605,
+        "std": 1.3503920767971593,
+        "median": 0.08473323278569153,
+        "iqr": 1.0960085221528282,
+        "min": -5.600272098286537,
+        "max": 5.313205979041787
+      },
+      "stratum_counts": {
+        "rejected_longer": 475,
+        "preferred_longer": 664,
+        "length_matched": 361
+      }
+    },
+    "length_balanced_train": {
+      "n_pairs": 1500,
+      "preferred_longer_fraction": 0.4693333333333333,
+      "chosen_words": {
+        "n": 1500,
+        "mean": 117.50266666666667,
+        "std": 83.22855675521207,
+        "median": 98.0,
+        "iqr": 132.0,
+        "min": 1.0,
+        "max": 331.0
+      },
+      "rejected_words": {
+        "n": 1500,
+        "mean": 114.98,
+        "std": 77.56299547249749,
+        "median": 99.0,
+        "iqr": 116.25,
+        "min": 2.0,
+        "max": 334.0
+      },
+      "log_length_ratio_chosen_over_rejected": {
+        "n": 1500,
+        "mean": -0.014693532654940201,
+        "std": 0.9133530502013825,
+        "median": 0.0,
+        "iqr": 0.9175952209585316,
+        "min": -3.378724525810097,
+        "max": 3.8501476017100584
+      },
+      "stratum_counts": {
+        "rejected_longer": 500,
+        "preferred_longer": 500,
+        "length_matched": 500
+      }
+    },
+    "length_stratified_eval": {
+      "n_pairs": 246,
+      "preferred_longer_fraction": 0.44715447154471544,
+      "chosen_words": {
+        "n": 246,
+        "mean": 110.2439024390244,
+        "std": 84.98401011375536,
+        "median": 91.0,
+        "iqr": 128.0,
+        "min": 2.0,
+        "max": 330.0
+      },
+      "rejected_words": {
+        "n": 246,
+        "mean": 111.72764227642277,
+        "std": 82.77240693447116,
+        "median": 91.0,
+        "iqr": 131.75,
+        "min": 3.0,
+        "max": 320.0
+      },
+      "log_length_ratio_chosen_over_rejected": {
+        "n": 246,
+        "mean": -0.059815698563506464,
+        "std": 0.8894724821356809,
+        "median": -0.029764365647898913,
+        "iqr": 0.9102674114144536,
+        "min": -3.1498829533812494,
+        "max": 2.0794415416798357
+      },
+      "stratum_counts": {
+        "rejected_longer": 82,
+        "preferred_longer": 82,
+        "length_matched": 82
+      }
+    }
+  },
+  "models": {
+    "standard": {
+      "stratified_pairs": {
+        "overall": {
+          "n": 237,
+          "preference_accuracy": 0.5611814345991561,
+          "dpo_loss": 0.6827577342463949,
+          "margin": {
+            "n": 237,
+            "mean": 0.2613677093248327,
+            "std": 1.443307386234705,
+            "median": 0.14467620849609375,
+            "iqr": 1.3733139038085938,
+            "min": -4.0695648193359375,
+            "max": 5.22216796875
+          },
+          "chosen_logratio_mean": -0.6826048742366743,
+          "rejected_logratio_mean": -0.9439725835615069,
+          "policy_likelihood_accuracy": 0.569620253164557,
+          "reference_likelihood_accuracy": 0.5654008438818565
+        },
+        "by_stratum": {
+          "length_matched": {
+            "n": 80,
+            "preference_accuracy": 0.5625,
+            "dpo_loss": 0.6860723771154881,
+            "margin": {
+              "n": 80,
+              "mean": 0.1783172607421875,
+              "std": 1.203399173818497,
+              "median": 0.06402397155761719,
+              "iqr": 0.8525381088256836,
+              "min": -3.45172119140625,
+              "max": 5.22216796875
+            },
+            "chosen_logratio_mean": -0.4986508846282959,
+            "rejected_logratio_mean": -0.6769681453704834,
+            "policy_likelihood_accuracy": 0.6125,
+            "reference_likelihood_accuracy": 0.6
+          },
+          "preferred_longer": {
+            "n": 78,
+            "preference_accuracy": 0.46153846153846156,
+            "dpo_loss": 0.6991480504855131,
+            "margin": {
+              "n": 78,
+              "mean": -0.0689252951206305,
+              "std": 1.4301254287717475,
+              "median": -0.1583995819091797,
+              "iqr": 1.605794906616211,
+              "min": -3.5160865783691406,
+              "max": 4.3058319091796875
+            },
+            "chosen_logratio_mean": -0.9442943670810797,
+            "rejected_logratio_mean": -0.8753690719604492,
+            "policy_likelihood_accuracy": 0.1282051282051282,
+            "reference_likelihood_accuracy": 0.1282051282051282
+          },
+          "rejected_longer": {
+            "n": 79,
+            "preference_accuracy": 0.6582278481012658,
+            "dpo_loss": 0.6632182899909683,
+            "margin": {
+              "n": 79,
+              "mean": 0.6715815097470826,
+              "std": 1.5749812139325523,
+              "median": 0.6338958740234375,
+              "iqr": 1.8155193328857422,
+              "min": -4.0695648193359375,
+              "max": 4.516387939453125
+            },
+            "chosen_logratio_mean": -0.6105104277405558,
+            "rejected_logratio_mean": -1.2820919374876385,
+            "policy_likelihood_accuracy": 0.9620253164556962,
+            "reference_likelihood_accuracy": 0.9620253164556962
+          }
+        },
+        "dataset_preferred_longer_fraction": 0.46835443037974683
+      },
+      "generation_tokens": {
+        "n": 116,
+        "mean": 172.5,
+        "std": 100.6432329808,
+        "median": 256.0,
+        "iqr": 192.0,
+        "min": 2.0,
+        "max": 256.0
+      },
+      "generation_reward": {
+        "n": 116,
+        "mean": 1.2393409465921337,
+        "std": 1.278743747259772,
+        "median": 1.42529296875,
+        "iqr": 1.9442138671875,
+        "min": -1.896484375,
+        "max": 3.771484375
+      },
+      "kl_token_mean": -0.00029829302649090494,
+      "word_limit": {
+        "n_prompts_with_limit": 10,
+        "compliance_rate": 0.4,
+        "response_words": {
+          "n": 10,
+          "mean": 43.7,
+          "std": 18.1,
+          "median": 38.0,
+          "iqr": 28.75,
+          "min": 24.0,
+          "max": 81.0
+        },
+        "reward": {
+          "n": 10,
+          "mean": 3.4765625,
+          "std": 0.42461224987527224,
+          "median": 3.5322265625,
+          "iqr": 0.5458984375,
+          "min": 2.548828125,
+          "max": 3.951171875
+        },
+        "kl_token_mean": 0.002421516925096512
+      }
+    },
+    "length_balanced": {
+      "stratified_pairs": {
+        "overall": {
+          "n": 237,
+          "preference_accuracy": 0.5949367088607594,
+          "dpo_loss": 0.6763172145885757,
+          "margin": {
+            "n": 237,
+            "mean": 0.44088605083996735,
+            "std": 2.001455910620185,
+            "median": 0.2825450897216797,
+            "iqr": 2.00592041015625,
+            "min": -6.0775909423828125,
+            "max": 6.4032440185546875
+          },
+          "chosen_logratio_mean": -1.4621580260715403,
+          "rejected_logratio_mean": -1.9030440769115078,
+          "policy_likelihood_accuracy": 0.569620253164557,
+          "reference_likelihood_accuracy": 0.5654008438818565
+        },
+        "by_stratum": {
+          "length_matched": {
+            "n": 80,
+            "preference_accuracy": 0.5875,
+            "dpo_loss": 0.6786100525408983,
+            "margin": {
+              "n": 80,
+              "mean": 0.34389705657958985,
+              "std": 1.4210569305345038,
+              "median": 0.14470481872558594,
+              "iqr": 1.230447769165039,
+              "min": -3.2281646728515625,
+              "max": 5.866912841796875
+            },
+            "chosen_logratio_mean": -1.1280327796936036,
+            "rejected_logratio_mean": -1.4719298362731934,
+            "policy_likelihood_accuracy": 0.6125,
+            "reference_likelihood_accuracy": 0.6
+          },
+          "preferred_longer": {
+            "n": 78,
+            "preference_accuracy": 0.4358974358974359,
+            "dpo_loss": 0.7211240025667044,
+            "margin": {
+              "n": 78,
+              "mean": -0.4640687306722005,
+              "std": 1.9041626100587756,
+              "median": -0.2843170166015625,
+              "iqr": 2.376901626586914,
+              "min": -6.0775909423828125,
+              "max": 4.7017669677734375
+            },
+            "chosen_logratio_mean": -2.0892645028921275,
+            "rejected_logratio_mean": -1.6251957722199268,
+            "policy_likelihood_accuracy": 0.1282051282051282,
+            "reference_likelihood_accuracy": 0.1282051282051282
+          },
+          "rejected_longer": {
+            "n": 79,
+            "preference_accuracy": 0.759493670886076,
+            "dpo_loss": 0.6297557399242739,
+            "margin": {
+              "n": 79,
+              "mean": 1.432602411584009,
+              "std": 2.142654839701737,
+              "median": 1.2071456909179688,
+              "iqr": 2.8122940063476562,
+              "min": -4.1463775634765625,
+              "max": 6.4032440185546875
+            },
+            "chosen_logratio_mean": -1.1813442857959602,
+            "rejected_logratio_mean": -2.613946697379969,
+            "policy_likelihood_accuracy": 0.9620253164556962,
+            "reference_likelihood_accuracy": 0.9620253164556962
+          }
+        },
+        "dataset_preferred_longer_fraction": 0.46835443037974683
+      },
+      "generation_tokens": {
+        "n": 116,
+        "mean": 170.68103448275863,
+        "std": 101.22811378080449,
+        "median": 256.0,
+        "iqr": 195.0,
+        "min": 2.0,
+        "max": 256.0
+      },
+      "generation_reward": {
+        "n": 116,
+        "mean": 1.2692193656132138,
+        "std": 1.2017166639017036,
+        "median": 1.37646484375,
+        "iqr": 1.7139892578125,
+        "min": -1.9033203125,
+        "max": 3.951171875
+      },
+      "kl_token_mean": 0.002460971240582108,
+      "word_limit": {
+        "n_prompts_with_limit": 10,
+        "compliance_rate": 0.5,
+        "response_words": {
+          "n": 10,
+          "mean": 42.1,
+          "std": 17.47254989977136,
+          "median": 38.0,
+          "iqr": 20.5,
+          "min": 24.0,
+          "max": 81.0
+        },
+        "reward": {
+          "n": 10,
+          "mean": 3.3287109375,
+          "std": 0.5447104554583514,
+          "median": 3.40234375,
+          "iqr": 0.76611328125,
+          "min": 2.16015625,
+          "max": 3.953125
+        },
+        "kl_token_mean": 0.005994277271797986
+      }
+    }
+  },
+  "word_limit_per_prompt": {
+    "wl01": {
+      "prompt": "Explain why regularization can improve generalization in at most 40 words.",
+      "standard": {
+        "words": 42,
+        "compliant": 0.0,
+        "reward": 3.951171875,
+        "response": "Regularization helps prevent overfitting by adding a penalty term to the loss function, encouraging models to be simpler and generalize better on unseen data. This reduces variance and stabilizes predictions across different training sets, leading to improved performance on new, unseen examples."
+      },
+      "length_balanced": {
+        "words": 42,
+        "compliant": 0.0,
+        "reward": 3.951171875,
+        "response": "Regularization helps prevent overfitting by adding a penalty term to the loss function, encouraging models to be simpler and generalize better on unseen data. This reduces variance and stabilizes predictions across different training sets, leading to improved performance on new, unseen examples."
+      },
+      "sft": {
+        "words": 42,
+        "compliant": 0.0,
+        "reward": 3.951171875,
+        "response": "Regularization helps prevent overfitting by adding a penalty term to the loss function, encouraging models to be simpler and generalize better on unseen data. This reduces variance and stabilizes predictions across different training sets, leading to improved performance on new, unseen examples."
+      }
+    },
+    "wl02": {
+      "prompt": "Define overfitting in no more than 25 words.",
+      "standard": {
+        "words": 31,
+        "compliant": 0.0,
+        "reward": 3.58203125,
+        "response": "Overfitting is when a model performs well on training data but poorly on new, unseen data because it has learned the noise in the training data instead of the underlying pattern."
+      },
+      "length_balanced": {
+        "words": 31,
+        "compliant": 0.0,
+        "reward": 3.58203125,
+        "response": "Overfitting is when a model performs well on training data but poorly on new, unseen data because it has learned the noise in the training data instead of the underlying pattern."
+      },
+      "sft": {
+        "words": 31,
+        "compliant": 0.0,
+        "reward": 3.58203125,
+        "response": "Overfitting is when a model performs well on training data but poorly on new, unseen data because it has learned the noise in the training data instead of the underlying pattern."
+      }
+    },
+    "wl03": {
+      "prompt": "Summarize the purpose of a validation set in at most 30 words.",
+      "standard": {
+        "words": 24,
+        "compliant": 1.0,
+        "reward": 3.84375,
+        "response": "A validation set is used to tune hyperparameters and assess model performance during training, ensuring that the final model generalizes well to unseen data."
+      },
+      "length_balanced": {
+        "words": 24,
+        "compliant": 1.0,
+        "reward": 3.84375,
+        "response": "A validation set is used to tune hyperparameters and assess model performance during training, ensuring that the final model generalizes well to unseen data."
+      },
+      "sft": {
+        "words": 24,
+        "compliant": 1.0,
+        "reward": 3.84375,
+        "response": "A validation set is used to tune hyperparameters and assess model performance during training, ensuring that the final model generalizes well to unseen data."
+      }
+    },
+    "wl04": {
+      "prompt": "Explain gradient descent in under 35 words.",
+      "standard": {
+        "words": 50,
+        "compliant": 0.0,
+        "reward": 2.986328125,
+        "response": "Gradient Descent is an optimization algorithm used to minimize the cost function of a machine learning model by iteratively moving in the direction of steepest descent as defined by the negative of the gradient. It updates the model's parameters until convergence to find the minimum of the loss function."
+      },
+      "length_balanced": {
+        "words": 50,
+        "compliant": 0.0,
+        "reward": 2.986328125,
+        "response": "Gradient Descent is an optimization algorithm used to minimize the cost function of a machine learning model by iteratively moving in the direction of steepest descent as defined by the negative of the gradient. It updates the model's parameters until convergence to find the minimum of the loss function."
+      },
+      "sft": {
+        "words": 50,
+        "compliant": 0.0,
+        "reward": 2.986328125,
+        "response": "Gradient Descent is an optimization algorithm used to minimize the cost function of a machine learning model by iteratively moving in the direction of steepest descent as defined by the negative of the gradient. It updates the model's parameters until convergence to find the minimum of the loss function."
+      }
+    },
+    "wl05": {
+      "prompt": "Describe one advantage and one limitation of attention in at most 45 words.",
+      "standard": {
+        "words": 81,
+        "compliant": 0.0,
+        "reward": 3.482421875,
+        "response": "Attention mechanisms, such as self-attention or encoder-decoder models, allow neural networks to focus on specific parts of the input during processing. This can improve performance on tasks like machine translation where understanding context is crucial.\n\nHowever, they also have limitations. For instance, attention can be computationally expensive for large inputs because each element must compute its own importance score before combining with others. Additionally, training these models often requires significant computational resources and time due to their intricate nature."
+      },
+      "length_balanced": {
+        "words": 81,
+        "compliant": 0.0,
+        "reward": 3.62109375,
+        "response": "Attention mechanisms, such as self-attention or encoder-decoder models, allow neural networks to focus on specific parts of the input during processing. This can improve performance on tasks like machine translation where understanding context is crucial.\n\nHowever, they also have limitations. For instance, attention can be computationally expensive for large inputs because each element must compute its own importance score before combining with others. Additionally, training these models often requires significant computational resources and time due to their intricate nature."
+      },
+      "sft": {
+        "words": 44,
+        "compliant": 1.0,
+        "reward": 3.673828125,
+        "response": "**Advantage:**\nAttention allows models to focus on relevant information while ignoring irrelevant details, enhancing their ability to make accurate predictions or decisions.\n\n**Limitation:**\nAttention mechanisms can be computationally expensive, requiring significant processing power and memory resources, which may limit the scalability of certain applications."
+      }
+    },
+    "wl06": {
+      "prompt": "What is distribution shift? Answer in no more than 30 words.",
+      "standard": {
+        "words": 26,
+        "compliant": 1.0,
+        "reward": 3.80859375,
+        "response": "Distribution shift refers to changes in data distributions between training and testing phases due to differences in the dataset or environment, leading to model performance degradation."
+      },
+      "length_balanced": {
+        "words": 25,
+        "compliant": 1.0,
+        "reward": 3.12890625,
+        "response": "Distribution shift refers to changes in data distributions between training and testing phases due to differences in the dataset used during model training versus evaluation."
+      },
+      "sft": {
+        "words": 26,
+        "compliant": 1.0,
+        "reward": 3.6875,
+        "response": "Distribution shift refers to changes in data distributions between training and testing phases due to differences in the dataset or environment, leading to model performance degradation."
+      }
+    },
+    "wl07": {
+      "prompt": "Explain the role of a learning rate in at most 35 words.",
+      "standard": {
+        "words": 63,
+        "compliant": 0.0,
+        "reward": 3.87890625,
+        "response": "A learning rate determines how much to adjust weights each time during training; it controls the speed and stability of convergence. A smaller learning rate requires more iterations for convergence but reduces oscillation risks; conversely, a larger learning rate accelerates convergence but increases risk of overshooting optimal parameters. It's crucial to find an appropriate balance based on model complexity and data characteristics."
+      },
+      "length_balanced": {
+        "words": 63,
+        "compliant": 0.0,
+        "reward": 3.953125,
+        "response": "A learning rate determines how much to adjust weights each time during training; it controls the speed and stability of convergence. A smaller learning rate requires more iterations for convergence but reduces oscillation risks; conversely, a larger learning rate accelerates convergence but increases risk of overshooting optimal parameters. It's crucial to find an optimal balance based on model complexity and data characteristics."
+      },
+      "sft": {
+        "words": 63,
+        "compliant": 0.0,
+        "reward": 4.04296875,
+        "response": "A learning rate determines how much to adjust weights each time during training; it controls the speed and stability of convergence. A smaller learning rate requires more iterations for convergence but reduces oscillation risks; conversely, a larger learning rate accelerates convergence but increases risk of overshooting optimal parameters. It's crucial to find an appropriate balance based on model complexity and data characteristics."
+      }
+    },
+    "wl08": {
+      "prompt": "Why can a model with high training accuracy still fail at deployment? Answer in at most 40 words.",
+      "standard": {
+        "words": 34,
+        "compliant": 1.0,
+        "reward": 2.548828125,
+        "response": "A model's high training accuracy does not guarantee it will perform well in deployment due to issues like overfitting, unseen feature importance from real-world data, and differences between training and production environments."
+      },
+      "length_balanced": {
+        "words": 34,
+        "compliant": 1.0,
+        "reward": 2.837890625,
+        "response": "A model's high training accuracy does not guarantee it will perform well in deployment due to issues like overfitting, unseen feature importance from real-world data, and differences between training and production environments."
+      },
+      "sft": {
+        "words": 34,
+        "compliant": 1.0,
+        "reward": 2.798828125,
+        "response": "A model's high training accuracy does not guarantee it will perform well in deployment due to issues like overfitting, unseen feature importance from real-world data, and differences between training and production environments."
+      }
+    },
+    "wl09": {
+      "prompt": "Define calibration for a probabilistic classifier in under 30 words.",
+      "standard": {
+        "words": 27,
+        "compliant": 1.0,
+        "reward": 3.447265625,
+        "response": "Calibration involves transforming the output probabilities of a model into more interpretable confidence intervals or decision thresholds to reflect true prediction uncertainty and guide human judgment effectively."
+      },
+      "length_balanced": {
+        "words": 27,
+        "compliant": 1.0,
+        "reward": 3.22265625,
+        "response": "Calibration involves transforming the output probabilities of a model into more interpretable confidence intervals or decision thresholds to reflect true prediction uncertainty and guide human judgment effectively."
+      },
+      "sft": {
+        "words": 19,
+        "compliant": 1.0,
+        "reward": 2.498046875,
+        "response": "Calibration involves transforming the predicted probabilities into accurate confidence intervals to reflect the true likelihood of an event occurring."
+      }
+    },
+    "wl10": {
+      "prompt": "Explain what a frozen reference model does in RLHF in at most 45 words.",
+      "standard": {
+        "words": 59,
+        "compliant": 0.0,
+        "reward": 3.236328125,
+        "response": "In reinforcement learning hyperparameter tuning (RLHF), a frozen reference model refers to training an RL agent with the best-performing existing model as its reference policy. The goal is to fine-tune this pre-trained model while minimizing divergence from its original performance. This approach helps in leveraging the strengths of pre-existing models without unnecessary complexity or risk."
+      },
+      "length_balanced": {
+        "words": 44,
+        "compliant": 1.0,
+        "reward": 2.16015625,
+        "response": "In Reinforcement Learning from Human Feedback (RLHF), a frozen reference model is one that is pre-trained on a large dataset and then fixed to prevent further learning. This allows the system to leverage existing knowledge while still allowing human feedback to guide improvements."
+      },
+      "sft": {
+        "words": 59,
+        "compliant": 0.0,
+        "reward": 3.205078125,
+        "response": "In reinforcement learning hyperparameter tuning (RLHF), a frozen reference model refers to training an RL agent with the best-performing existing model as its reference policy. The goal is to fine-tune this pre-trained model while minimizing divergence from its original performance. This approach helps in leveraging the strengths of pre-existing models without unnecessary complexity or risk."
+      }
+    }
+  }
+}
