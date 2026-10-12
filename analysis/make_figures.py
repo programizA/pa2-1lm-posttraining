@@ -119,13 +119,43 @@ def main():
         df = pd.read_csv(t1 / "dpo_summary.csv")
         fk = df[df.condition.str.startswith("beta_")].sort_values("beta")
         if len(fk):
-            panels = [("heldout_pref_acc", "held-out pref. accuracy"), ("kl_token_mean", "KL to reference (token mean)"),
-                      ("reward_mean", "reward-model score"), ("len_tokens_mean", "response length (tokens)")]
-            fig, axes = plt.subplots(1, 4, figsize=(7.0, 1.9))
+            # Means with bootstrap 95% CIs from the per-example files, so noise is not mistaken for a trend.
+            # Unscaled margin m (comparable across beta) replaces the held-out DPO loss, which is not.
+            rng = np.random.default_rng(0)
+
+            def ci(x):
+                x = np.asarray(x, float)
+                b = [rng.choice(x, len(x)).mean() for _ in range(2000)]
+                return x.mean(), *np.percentile(b, [2.5, 97.5])
+
+            def per_example(name):
+                pairs = pd.DataFrame(jl(t1 / f"eval_{name}_pairs.jsonl")) if (t1 / f"eval_{name}_pairs.jsonl").exists() else None
+                gens = pd.DataFrame(jl(t1 / f"eval_{name}_generations.jsonl")) if (t1 / f"eval_{name}_generations.jsonl").exists() else None
+                return pairs, gens
+
+            panels = [("acc", "held-out pref. accuracy"), ("margin", "held-out margin $m$ (unscaled)"),
+                      ("reward", "reward-model score"), ("len", "response length (tokens)")]
+            stats = {p: [] for p, _ in panels}
+            for cond in fk["condition"]:
+                pairs, gens = per_example(cond)
+                stats["acc"].append(ci(pairs["correct"].astype(float)) if pairs is not None else (np.nan,) * 3)
+                stats["margin"].append(ci(pairs["margin"]) if pairs is not None else (np.nan,) * 3)
+                stats["reward"].append(ci(gens["reward"]) if gens is not None else (np.nan,) * 3)
+                stats["len"].append(ci(gens["response_tokens"]) if gens is not None else (np.nan,) * 3)
+            sft_pairs, sft_gens = per_example("sft")
+            fig, axes = plt.subplots(1, 4, figsize=(7.0, 2.0))
             for ax, (k, lab) in zip(axes, panels):
-                ax.plot(fk["beta"], fk[k], color=SERIES[0], marker="o")
-                if k == "len_tokens_mean" and "len_tokens_std" in fk:
-                    ax.errorbar(fk["beta"], fk[k], yerr=fk["len_tokens_std"], color=SERIES[0], fmt="none", elinewidth=0.8, capsize=2)
+                m, lo, hi = (np.array(v) for v in zip(*stats[k]))
+                ax.errorbar(fk["beta"], m, yerr=[m - lo, hi - m], color=SERIES[0], marker="o", capsize=2, elinewidth=0.8)
+                if k == "reward" and sft_gens is not None:
+                    ax.axhline(sft_gens["reward"].mean(), color=INK2, ls="--", lw=0.8, label="SFT")
+                    ax.legend(frameon=False, loc="lower left")
+                if k == "len" and sft_gens is not None:
+                    ax.axhline(sft_gens["response_tokens"].mean(), color=INK2, ls="--", lw=0.8)
+                if k == "acc":
+                    ax.axhline(0.5, color=INK2, ls=":", lw=0.8)
+                if k == "margin":
+                    ax.axhline(0.0, color=INK2, ls=":", lw=0.8)
                 ax.set_xscale("log")
                 ax.set_xticks(fk["beta"], [f"{b:g}" for b in fk["beta"]])
                 ax.minorticks_off()
@@ -133,13 +163,40 @@ def main():
                 ax.set_title(lab, color=INK)
             fig.tight_layout()
             save(fig, out, "t1_beta_study")
-    if (t1 / "length_confounding.csv").exists():
-        df = pd.read_csv(t1 / "length_confounding.csv").set_index("model")
-        strata = sorted((c[4:] for c in df.columns if c.startswith("acc_") and c != "acc_overall_stratified"),
+    strat_files = {m: t1 / f"eval_{m}_dpo_length_stratified_eval_pairs.jsonl" for m in ("standard", "length_balanced")}
+    if all(f.exists() for f in strat_files.values()):
+        rng = np.random.default_rng(0)
+        data = {m: pd.DataFrame(jl(f)) for m, f in strat_files.items()}
+        strata = sorted(data["standard"]["stratum"].unique(),
                         key=lambda s: 0 if s.startswith("pref") else 2 if s.startswith("rej") else 1)
-        vals = {m: {s.replace("_", "-"): df.loc[m, f"acc_{s}"] for s in strata} for m in df.index}
-        grouped_bars([s.replace("_", "-") for s in strata], list(df.index), vals, "held-out preference accuracy",
-                     "Preference accuracy by length stratum", out, "t1_length_strata", "DPO training set", (0, 1.05))
+        labels = [s.replace("_", "-").replace("length-", "") for s in strata]
+        x = np.arange(len(strata))
+        fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.3))
+        # (a) accuracy per stratum with bootstrap 95% CI, both training sets
+        w = 0.38
+        for i, m in enumerate(data):
+            means, errs = [], [[], []]
+            for s in strata:
+                v = data[m].loc[data[m]["stratum"] == s, "correct"].astype(float).to_numpy()
+                b = np.percentile([rng.choice(v, len(v)).mean() for _ in range(2000)], [2.5, 97.5])
+                means.append(v.mean()); errs[0].append(v.mean() - b[0]); errs[1].append(b[1] - v.mean())
+            axes[0].bar(x + (i - 0.5) * w, means, w * 0.92, yerr=errs, capsize=2, color=SERIES[i], label=m.replace("_", "-"),
+                        edgecolor="white", linewidth=0.8, error_kw={"elinewidth": 0.8})
+        axes[0].axhline(0.5, color=INK2, ls=":", lw=0.8)
+        axes[0].set_xticks(x, labels); axes[0].set_ylim(0, 1); axes[0].set_ylabel("held-out pref. accuracy")
+        axes[0].set_title("(a) accuracy by length stratum", color=INK); axes[0].grid(axis="x", visible=False)
+        axes[0].legend(title="DPO training set", frameon=False, loc="upper left", fontsize=6, title_fontsize=6)
+        # (b) mechanism: change in summed log-prob of winner and loser (standard model)
+        d = data["standard"]
+        for i, (col, lab) in enumerate([("policy_logratio_chosen", "preferred"), ("policy_logratio_rejected", "rejected")]):
+            vals = [d.loc[d["stratum"] == s, col].mean() for s in strata]
+            axes[1].bar(x + (i - 0.5) * w, vals, w * 0.92, color=SERIES[i + 2], label=lab, edgecolor="white", linewidth=0.8)
+        axes[1].axhline(0, color=INK2, lw=0.8)
+        axes[1].set_xticks(x, labels); axes[1].set_ylabel(r"$\Delta \log \pi$ vs reference (nats)")
+        axes[1].set_title("(b) standard DPO: log-prob change per response", color=INK); axes[1].grid(axis="x", visible=False)
+        axes[1].legend(frameon=False, loc="lower left", fontsize=6)
+        fig.tight_layout()
+        save(fig, out, "t1_length_strata")
 
     # ---------------- Task 2
     t2 = R / "task2_ppo"
