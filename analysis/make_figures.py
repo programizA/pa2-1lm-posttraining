@@ -201,12 +201,36 @@ def main():
     # ---------------- Task 2
     t2 = R / "task2_ppo"
     if (t2 / "train_standard.jsonl").exists():
-        trajectory_grid(jl(t2 / "train_standard.jsonl"), [
+        log2 = jl(t2 / "train_standard.jsonl")
+        # Per-update explained variance is computed within ONE response, whose returns barely vary, so it is
+        # ill-conditioned (values of -500); critic quality is shown across updates in t2_critic_ratio instead.
+        trajectory_grid(log2, [
             ("rm_score_mean", "reward-model score"), ("kl_token_mean", "KL to reference"), ("policy_loss", "policy loss"),
             ("value_loss", "value loss"), ("entropy_token_mean", "entropy"), ("clip_fraction", "clip fraction"),
-            ("policy_grad_norm", "policy grad norm"), ("response_tokens_mean", "response length"),
-            ("explained_variance", "critic explained variance"), ("affected_fraction", "affected-token fraction")],
+            ("policy_grad_norm", "policy grad norm"), ("response_tokens_mean", "response length")],
             "Standard PPO continuation from the supplied midpoint", out, "t2_ppo_standard")
+        upd = [r["update"] for r in log2]
+        fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.6))
+        axes[0].plot(upd, [r["task_reward_mean"] for r in log2], color=SERIES[0], marker="o", label="reward received")
+        axes[0].plot(upd, [r["value_first_token_mean"] for r in log2], color=SERIES[1], marker="s", label=r"critic forecast $V(s_0)$")
+        r_ = np.array([r["task_reward_mean"] for r in log2]); v_ = np.array([r["value_first_token_mean"] for r in log2])
+        axes[0].set_title(f"(a) critic forecast vs outcome (corr {abs(np.corrcoef(r_, v_)[0, 1]):.2f})"
+                          if abs(np.corrcoef(r_, v_)[0, 1]) < 0.005 else
+                          f"(a) critic forecast vs outcome (corr {np.corrcoef(r_, v_)[0, 1]:+.2f})", color=INK)
+        axes[0].legend(frameon=False, fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2)
+        lo = [min(e["ratio_min"] for e in r["epochs"]) for r in log2]
+        hi = [max(e["ratio_max"] for e in r["epochs"]) for r in log2]
+        axes[1].fill_between(upd, lo, hi, color=SERIES[0], alpha=0.35, linewidth=0, label="range of ratios in update")
+        for eps, ls in ((0.05, "--"), (0.2, ":")):
+            axes[1].axhline(1 + eps, color=INK2, ls=ls, lw=0.8, label=rf"$1\pm{eps:g}$")
+            axes[1].axhline(1 - eps, color=INK2, ls=ls, lw=0.8)
+        axes[1].set_ylim(0.75, 1.25)
+        axes[1].set_title(r"(b) ratio $\pi_{new}/\pi_{old}$ vs clipping bands", color=INK)
+        axes[1].legend(frameon=False, fontsize=6, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=3)
+        for ax in axes:
+            ax.set_xlabel("update"); ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        fig.tight_layout()
+        save(fig, out, "t2_critic_ratio")
     for prefix, vals_key, legend, name, panels in [
         ("kl_", "kl_values", r"$\beta_{KL}$", "t2_kl_forks",
          [("rm_score_mean", "reward"), ("kl_token_mean", "KL to reference"), ("entropy_token_mean", "entropy"), ("response_tokens_mean", "length")]),
