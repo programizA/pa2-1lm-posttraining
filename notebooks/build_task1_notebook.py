@@ -450,8 +450,10 @@ subprocess.run([sys.executable, "-m", "task1_dpo.analyze_length", "--config", CO
 lc_tab = pd.read_csv(RES / "length_confounding.csv").set_index("model")
 display(lc_tab.T)
 
-strata = ["preferred_longer", "matched", "rejected_longer"]
-x = np.arange(3); w = 0.38
+# Stratum names come from the data file itself (e.g. preferred_longer / length_matched / rejected_longer).
+strata = sorted((c[4:] for c in lc_tab.columns if c.startswith("acc_") and c != "acc_overall_stratified"),
+                key=lambda s: 0 if s.startswith("pref") else 2 if s.startswith("rej") else 1)
+x = np.arange(len(strata)); w = 0.38
 fig, ax = plt.subplots(figsize=(5.5, 2.6))
 for i, (m, c) in enumerate([("standard", "#2a78d6"), ("length_balanced", "#eb6834")]):
     ax.bar(x + (i - 0.5) * w, [lc_tab.loc[m, f"acc_{s}"] for s in strata], w * 0.94, color=c, label=m)

@@ -46,7 +46,7 @@ def stratum_of(row: dict, ratio: float = 1.25):
         return "preferred_longer", "derived"
     if lr >= ratio * lc:
         return "rejected_longer", "derived"
-    return "matched", "derived"
+    return "length_matched", "derived"
 
 
 @torch.no_grad()

@@ -89,7 +89,7 @@ def main(root: Path):
     d = root / "data"
     def pref(i, stratum=None):
         q = sentence(rng, 8) + "?"
-        lc, lr = {"preferred_longer": (30, 8), "rejected_longer": (8, 30), "matched": (15, 15), None: (rng.randint(5, 30), rng.randint(5, 30))}[stratum]
+        lc, lr = {"preferred_longer": (30, 8), "rejected_longer": (8, 30), "length_matched": (15, 15), None: (rng.randint(5, 30), rng.randint(5, 30))}[stratum]
         row = {"prompt_id": f"p{i}", "prompt": q,
                "chosen": [{"role": "user", "content": q}, {"role": "assistant", "content": sentence(rng, lc)}],
                "rejected": [{"role": "user", "content": q}, {"role": "assistant", "content": sentence(rng, lr)}]}
@@ -98,7 +98,7 @@ def main(root: Path):
         return row
     jdump(d / "dpo_standard_train.jsonl", [pref(i) for i in range(40)])
     jdump(d / "dpo_standard_eval.jsonl", [pref(100 + i) for i in range(12)])
-    strata = ["preferred_longer", "matched", "rejected_longer"]
+    strata = ["preferred_longer", "length_matched", "rejected_longer"]
     jdump(d / "dpo_length_balanced_train.jsonl", [pref(200 + i, strata[i % 3]) for i in range(24)])
     jdump(d / "dpo_length_stratified_eval.jsonl", [pref(300 + i, strata[i % 3]) for i in range(12)])
     (d / "word_limit_prompts.jsonl").write_text((REPO / "data/word_limit_prompts.jsonl").read_text())

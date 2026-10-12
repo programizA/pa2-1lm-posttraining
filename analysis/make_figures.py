@@ -135,7 +135,8 @@ def main():
             save(fig, out, "t1_beta_study")
     if (t1 / "length_confounding.csv").exists():
         df = pd.read_csv(t1 / "length_confounding.csv").set_index("model")
-        strata = [s for s in ("preferred_longer", "matched", "rejected_longer") if f"acc_{s}" in df]
+        strata = sorted((c[4:] for c in df.columns if c.startswith("acc_") and c != "acc_overall_stratified"),
+                        key=lambda s: 0 if s.startswith("pref") else 2 if s.startswith("rej") else 1)
         vals = {m: {s.replace("_", "-"): df.loc[m, f"acc_{s}"] for s in strata} for m in df.index}
         grouped_bars([s.replace("_", "-") for s in strata], list(df.index), vals, "held-out preference accuracy",
                      "Preference accuracy by length stratum", out, "t1_length_strata", "DPO training set", (0, 1.05))
