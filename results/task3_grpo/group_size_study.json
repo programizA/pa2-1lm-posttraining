@@ -1,0 +1,267 @@
+{
+  "n_prompts": 24,
+  "reward_is_binary": false,
+  "difficulty_rule": "tertiles of 8-sample mean reward: hard <= 1.3126 < medium <= 2.4212 < easy",
+  "tolerance": 1e-06,
+  "relative_tolerance": 0.07785750701681202,
+  "partition": {
+    "2": {
+      "n_groups": 96,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.9375,
+      "uninformative_group_rate": 0.0625,
+      "fraction_completions_with_signal": 0.9375,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.3845672607421875,
+      "var_centered_advantage": 0.3368348789711793,
+      "var_normalized_advantage": 0.9374814173564774,
+      "baseline_mse_vs_8sample_mean": 0.22306026487300792
+    },
+    "4": {
+      "n_groups": 48,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "fraction_completions_with_signal": 0.9583333333333334,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.5410043647319412,
+      "var_centered_advantage": 0.4677260586371024,
+      "var_normalized_advantage": 0.9583276282884473,
+      "baseline_mse_vs_8sample_mean": 0.09216908520708482
+    },
+    "8": {
+      "n_groups": 24,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "fraction_completions_with_signal": 0.9583333333333334,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.6190544134665206,
+      "var_centered_advantage": 0.5598951438441873,
+      "var_normalized_advantage": 0.9583290996055105,
+      "baseline_mse_vs_8sample_mean": 0.0
+    }
+  },
+  "partition_rel_tol": {
+    "2": {
+      "n_groups": 96,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.8229166666666666,
+      "uninformative_group_rate": 0.17708333333333337,
+      "fraction_completions_with_signal": 0.8229166666666666,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.3845672607421875,
+      "var_centered_advantage": 0.3368348789711793,
+      "var_normalized_advantage": 0.9374814173564774,
+      "baseline_mse_vs_8sample_mean": 0.22306026487300792
+    },
+    "4": {
+      "n_groups": 48,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "fraction_completions_with_signal": 0.9583333333333334,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.5410043647319412,
+      "var_centered_advantage": 0.4677260586371024,
+      "var_normalized_advantage": 0.9583276282884473,
+      "baseline_mse_vs_8sample_mean": 0.09216908520708482
+    },
+    "8": {
+      "n_groups": 24,
+      "n_completions": 192,
+      "n_prompts": 24,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "fraction_completions_with_signal": 0.9583333333333334,
+      "prompts_with_any_informative_group": 23,
+      "mean_within_group_reward_std": 0.6190544134665206,
+      "var_centered_advantage": 0.5598951438441873,
+      "var_normalized_advantage": 0.9583290996055105,
+      "baseline_mse_vs_8sample_mean": 0.0
+    }
+  },
+  "coverage": {
+    "2": {
+      "n_groups": 24.0,
+      "n_completions": 48.0,
+      "n_prompts": 24.0,
+      "informative_group_rate": 0.9479166666666664,
+      "uninformative_group_rate": 0.052083333333333315,
+      "fraction_completions_with_signal": 0.9479166666666664,
+      "prompts_with_any_informative_group": 22.75,
+      "mean_within_group_reward_std": 0.42135467529296877,
+      "var_centered_advantage": 0.37134984793762366,
+      "var_normalized_advantage": 0.9478955625203673,
+      "baseline_mse_vs_8sample_mean": 0.21350878911713758,
+      "budget_completions": 48
+    },
+    "4": {
+      "n_groups": 12.0,
+      "n_completions": 48.0,
+      "n_prompts": 12.0,
+      "informative_group_rate": 0.95,
+      "uninformative_group_rate": 0.050000000000000024,
+      "fraction_completions_with_signal": 0.95,
+      "prompts_with_any_informative_group": 11.4,
+      "mean_within_group_reward_std": 0.5419440424004359,
+      "var_centered_advantage": 0.4666210401803254,
+      "var_normalized_advantage": 0.9499940706334721,
+      "baseline_mse_vs_8sample_mean": 0.0834032035432756,
+      "budget_completions": 48
+    },
+    "8": {
+      "n_groups": 6.0,
+      "n_completions": 48.0,
+      "n_prompts": 6.0,
+      "informative_group_rate": 0.9666666666666668,
+      "uninformative_group_rate": 0.033333333333333326,
+      "fraction_completions_with_signal": 0.9666666666666668,
+      "prompts_with_any_informative_group": 5.8,
+      "mean_within_group_reward_std": 0.6458563478629056,
+      "var_centered_advantage": 0.5581645412991444,
+      "var_normalized_advantage": 0.9666627671243793,
+      "baseline_mse_vs_8sample_mean": 0.0,
+      "budget_completions": 48
+    }
+  },
+  "by_difficulty": {
+    "2": {
+      "hard": {
+        "n_groups": 32,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 0.84375,
+        "uninformative_group_rate": 0.15625,
+        "fraction_completions_with_signal": 0.84375,
+        "prompts_with_any_informative_group": 7,
+        "mean_within_group_reward_std": 0.49340057373046875,
+        "var_centered_advantage": 0.5984376166015863,
+        "var_normalized_advantage": 0.8437429903132556,
+        "baseline_mse_vs_8sample_mean": 0.2884632903151214,
+        "n_prompts_in_bin": 8
+      },
+      "medium": {
+        "n_groups": 32,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 0.96875,
+        "uninformative_group_rate": 0.03125,
+        "fraction_completions_with_signal": 0.96875,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.41237640380859375,
+        "var_centered_advantage": 0.3040905836969614,
+        "var_normalized_advantage": 0.9687324662020503,
+        "baseline_mse_vs_8sample_mean": 0.14282165793702006,
+        "n_prompts_in_bin": 8
+      },
+      "easy": {
+        "n_groups": 32,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 1.0,
+        "uninformative_group_rate": 0.0,
+        "fraction_completions_with_signal": 1.0,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.2479248046875,
+        "var_centered_advantage": 0.10797643661499023,
+        "var_normalized_advantage": 0.9999687955541261,
+        "baseline_mse_vs_8sample_mean": 0.23789584636688232,
+        "n_prompts_in_bin": 8
+      }
+    },
+    "4": {
+      "hard": {
+        "n_groups": 16,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 0.875,
+        "uninformative_group_rate": 0.125,
+        "fraction_completions_with_signal": 0.875,
+        "prompts_with_any_informative_group": 7,
+        "mean_within_group_reward_std": 0.6614877562072954,
+        "var_centered_advantage": 0.786526813171804,
+        "var_normalized_advantage": 0.8749959487185579,
+        "baseline_mse_vs_8sample_mean": 0.1003740937449038,
+        "n_prompts_in_bin": 8
+      },
+      "medium": {
+        "n_groups": 16,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 1.0,
+        "uninformative_group_rate": 0.0,
+        "fraction_completions_with_signal": 1.0,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.5516941225351226,
+        "var_centered_advantage": 0.4017186826094985,
+        "var_normalized_advantage": 0.9999938126434347,
+        "baseline_mse_vs_8sample_mean": 0.045193559024482965,
+        "n_prompts_in_bin": 8
+      },
+      "easy": {
+        "n_groups": 16,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 1.0,
+        "uninformative_group_rate": 0.0,
+        "fraction_completions_with_signal": 1.0,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.4098312154534056,
+        "var_centered_advantage": 0.21493268013000488,
+        "var_normalized_advantage": 0.9999931235033492,
+        "baseline_mse_vs_8sample_mean": 0.13093960285186768,
+        "n_prompts_in_bin": 8
+      }
+    },
+    "8": {
+      "hard": {
+        "n_groups": 8,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 0.875,
+        "uninformative_group_rate": 0.125,
+        "fraction_completions_with_signal": 0.875,
+        "prompts_with_any_informative_group": 7,
+        "mean_within_group_reward_std": 0.7633688437029319,
+        "var_centered_advantage": 0.8869009069167078,
+        "var_normalized_advantage": 0.8749973884556075,
+        "baseline_mse_vs_8sample_mean": 0.0,
+        "n_prompts_in_bin": 8
+      },
+      "medium": {
+        "n_groups": 8,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 1.0,
+        "uninformative_group_rate": 0.0,
+        "fraction_completions_with_signal": 1.0,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.5990220788024174,
+        "var_centered_advantage": 0.44691224163398147,
+        "var_normalized_advantage": 0.9999956471654694,
+        "baseline_mse_vs_8sample_mean": 0.0,
+        "n_prompts_in_bin": 8
+      },
+      "easy": {
+        "n_groups": 8,
+        "n_completions": 64,
+        "n_prompts": 8,
+        "informative_group_rate": 1.0,
+        "uninformative_group_rate": 0.0,
+        "fraction_completions_with_signal": 1.0,
+        "prompts_with_any_informative_group": 8,
+        "mean_within_group_reward_std": 0.49477231789421244,
+        "var_centered_advantage": 0.34587228298187256,
+        "var_normalized_advantage": 0.9999942631954548,
+        "baseline_mse_vs_8sample_mean": 0.0,
+        "n_prompts_in_bin": 8
+      }
+    }
+  }
+}
