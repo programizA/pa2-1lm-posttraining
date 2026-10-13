@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import torch
 
 from common.data import repo_path
 
 
 def set_seed(seed: int) -> None:
+    import torch  # imported here so CPU-only analysis scripts run without PyTorch installed
+
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
