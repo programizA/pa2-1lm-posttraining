@@ -70,6 +70,7 @@ python -m task4_safety.judge_responses    --config configs/feedback.yaml   # cac
 python -m task4_safety.make_audit_sheet   --config configs/feedback.yaml   # blind sheet, see Section 4
 #   -> fill results/task4_safety/manual_audit_sheet.csv (manual_label column) BEFORE opening judged_*.jsonl
 python -m task4_safety.evaluate_safety    --config configs/feedback.yaml
+python -m task4_safety.refusal_check      --config configs/feedback.yaml   # transparent refusal rule; cross-checks the judge
 ```
 
 ### Task 5: RLVR vs RLAIF

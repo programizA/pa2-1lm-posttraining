@@ -248,6 +248,16 @@ python3 -m task4_safety.evaluate_safety --config configs/feedback.yaml
 
 That writes `safety_summary.csv`, `safety_by_category.csv`, `safety_report.json` (including manual-vs-judge agreement and
 Cohen's kappa), the confusion matrix and the list of disagreements.
+
+4. cross-check the judge where it is weakest (also laptop-only):
+
+```bash
+python3 -m task4_safety.refusal_check --config configs/feedback.yaml
+```
+
+XSTest already says whether each prompt is benign, so the only open question per response is "did it refuse?". A fixed
+string rule answers that; `refusal_check` validates the rule against your manual labels, gives over-refusal rates with
+95% intervals, compares each policy's refusals with SFT on the same prompts, and breaks over-refusal down by XSTest type.
 """)
 code(r'''
 shutil.make_archive("/kaggle/working/task4_results", "zip", repo_path(cfg["results_dir"]), "task4_safety")

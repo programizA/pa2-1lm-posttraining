@@ -312,6 +312,43 @@ def main():
         pols = list(df.index)[:4]
         vals = {p: {m: float(df.loc[p, c]) for m, c in metrics.items()} for p in pols}
         grouped_bars(list(metrics), pols, vals, "rate (AI judge)", "XSTest safety calibration", out, "t4_safety", "policy", (0, 1.1))
+    if (t4 / "refusal_check_summary.csv").exists():
+        # Left: over-refusal on benign prompts, judge vs refusal rule (Wilson 95% CI).
+        # Right: which benign XSTest types get refused, per policy.
+        s = pd.read_csv(t4 / "refusal_check_summary.csv", index_col=0)
+        bt = pd.read_csv(t4 / "refusal_check_over_refusal_by_type.csv", index_col=0)
+        pols = list(s.index)
+        fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.0, 2.6), gridspec_kw={"width_ratios": [1, 1.6]})
+        x = np.arange(len(pols))
+        # Neutral greys here: the series colours on the right panel mean policies.
+        jb = a1.bar(x - 0.2, s["judge_over_refusal"], 0.37, color="#b9b8b3", label="AI judge", edgecolor="white")
+        for b, v in zip(jb, s["judge_over_refusal"]):
+            a1.text(b.get_x() + b.get_width() / 2, v + 0.01, f"{v:.0f}" if v == 0 else f"{v:.2f}",
+                    ha="center", va="bottom", fontsize=6, color=INK2)
+        lo = s["check_over_refusal"] - s["check_over_refusal_lo"]
+        hi = s["check_over_refusal_hi"] - s["check_over_refusal"]
+        a1.bar(x + 0.2, s["check_over_refusal"], 0.37, color=INK2, label="refusal rule", edgecolor="white",
+               yerr=[lo, hi], error_kw={"ecolor": INK, "elinewidth": 0.8, "capsize": 2})
+        a1.set_xticks(x, pols)
+        a1.set_ylabel("over-refusal rate (benign prompts)")
+        a1.set_ylim(0, max(0.1, float(s["check_over_refusal_hi"].max()) * 1.35))
+        a1.grid(axis="x", visible=False)
+        a1.legend(frameon=False, loc="upper left")
+        a1.set_title("the judge never reports over-refusal", color=INK)
+        y = np.arange(len(bt))
+        h = 0.8 / len(pols)
+        for i, p in enumerate(pols):
+            a2.barh(y + (i - (len(pols) - 1) / 2) * h, bt[p], h * 0.92, color=SERIES[i], label=p,
+                    edgecolor="white", linewidth=0.5)
+        a2.set_yticks(y, [t.replace("_", " ") for t in bt.index])
+        a2.invert_yaxis()
+        a2.set_xlabel("refusal rate (refusal rule)")
+        a2.set_xlim(0, 1)
+        a2.grid(axis="y", visible=False)
+        a2.legend(frameon=False, loc="center left", bbox_to_anchor=(1.01, 0.5), title="policy")
+        a2.set_title("over-refusal by benign XSTest type", color=INK)
+        fig.tight_layout()
+        save(fig, out, "t4_over_refusal")
 
     # ---------------- Task 5
     t5 = R / "task5_feedback"
