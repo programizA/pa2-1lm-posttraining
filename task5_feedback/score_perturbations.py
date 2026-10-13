@@ -40,26 +40,39 @@ REASONING_PAIRS = ["corrupt_reasoning_correct_final"]
 OUTCOME_PAIRS = ["good_reasoning_wrong_final", "gold_distractor_wrong_final"]
 
 
+TEXT_KEYS = ("response", "text", "completion", "candidate", "candidate_response", "response_text", "solution", "output")
+PROBLEM_KEYS = ("question", "problem", "prompt", "problem_text")
+GOLD_KEYS = ("gold_final", "gold", "answer_final", "gold_answer", "final_answer", "answer")
+
+
 def _text(row):
-    for k in ("response", "text", "completion", "candidate"):
-        if row.get(k) is not None:
-            return str(row[k])
-    raise KeyError(f"No response text in diagnostic row keys {sorted(row)}")
+    for k in TEXT_KEYS:
+        if isinstance(row.get(k), str):
+            return row[k]
+    raise KeyError(f"No response text in diagnostic row; fields present: {sorted(row)} "
+                   f"(looked for {TEXT_KEYS}). Tell Claude which field holds the candidate solution.")
 
 
 def _problem(row):
-    for k in ("question", "problem", "prompt"):
+    for k in PROBLEM_KEYS:
         if isinstance(row.get(k), str) and row[k]:
             return row[k]
-    msgs = row.get("messages") or []
-    return str(msgs[-1]["content"]) if msgs else ""
+    msgs = row.get("messages") or row.get("prompt_messages") or []
+    if msgs:
+        return str(msgs[-1]["content"])
+    raise KeyError(f"No problem text in diagnostic row; fields present: {sorted(row)}")
 
 
 def _gold(row):
-    for k in ("gold_final", "gold", "answer_final"):
-        if row.get(k) is not None:
-            return str(row[k])
-    raise KeyError(f"No gold answer in diagnostic row keys {sorted(row)}")
+    import re
+    for k in GOLD_KEYS:
+        v = row.get(k)
+        if v is None:
+            continue
+        v = str(v)
+        m = re.search(r"####\s*([-+]?[\d,]*\.?\d+)", v)  # a full GSM-style solution string
+        return m.group(1).replace(",", "") if m else v.replace(",", "").strip()
+    raise KeyError(f"No gold answer in diagnostic row; fields present: {sorted(row)} (looked for {GOLD_KEYS})")
 
 
 def main():
