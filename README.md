@@ -79,6 +79,7 @@ python -m task5_feedback.evaluate_math --config configs/feedback.yaml --dataset 
 python -m task5_feedback.score_perturbations --config configs/feedback.yaml
 python -m task5_feedback.evaluate_math --config configs/feedback.yaml --dataset transfer
 python -m task5_feedback.compare_feedback --config configs/feedback.yaml
+python -m task5_feedback.analyze_outputs  --config configs/feedback.yaml   # format vs maths, paired tests, judge noise floor
 ```
 
 ### Guided notebooks (Kaggle)

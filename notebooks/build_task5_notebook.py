@@ -285,6 +285,21 @@ shutil.make_archive("/kaggle/working/task5_figures", "zip", FIGS.parent, FIGS.na
 print("wrote /kaggle/working/task5_results.zip and task5_figures.zip")
 ''')
 
+md(r"""
+## 11. Follow-up on your laptop (no GPU)
+
+After unzipping `task5_results.zip` into `results/`:
+
+```bash
+python3 -m task5_feedback.analyze_outputs --config configs/feedback.yaml
+python3 -m analysis.make_figures
+```
+
+`analyze_outputs` splits the verifier's zeros into "right answer but no `####` line" and "actually wrong" (a lenient
+last-number check), runs paired McNemar tests against SFT on the same problems, and measures the judge's noise floor:
+how often it picks a winner between two byte-identical solutions.
+""")
+
 nb = {"cells": CELLS, "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
                                     "language_info": {"name": "python"}}, "nbformat": 4, "nbformat_minor": 5}
 out = Path(__file__).resolve().parent / "task5_feedback.ipynb"

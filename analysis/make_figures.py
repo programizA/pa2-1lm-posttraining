@@ -360,9 +360,11 @@ def main():
         for ax, m in zip(axes.flat, mechs):
             y = np.arange(len(cats))
             left = np.zeros(len(cats))
-            for i, (k, lab) in enumerate([("better_rate", "prefers better"), ("tie_rate", "tie"), ("wrong_rate", "prefers worse")]):
+            # tie is "no signal", so it gets a neutral grey; better/worse get the two strongest series colours
+            for k, lab, col in [("better_rate", "prefers better", SERIES[0]), ("tie_rate", "tie", "#c9c8c3"),
+                                ("wrong_rate", "prefers worse", SERIES[1])]:
                 v = np.array([d["by_category"][c][m][k] for c in cats])
-                ax.barh(y, v, left=left, color=SERIES[i], label=lab, edgecolor="white", linewidth=0.8)
+                ax.barh(y, v, left=left, color=col, label=lab, edgecolor="white", linewidth=0.8)
                 left += v
             ax.set_yticks(y, [c.replace("_", " ") for c in cats])
             ax.set_xlim(0, 1)
@@ -376,6 +378,34 @@ def main():
         df = pd.read_csv(t5 / "feedback_comparison.csv").set_index("policy")
         vals = {"GSM8K": df["gsm_acc"].to_dict(), "SVAMP": df["svamp_acc"].to_dict()}
         grouped_bars(list(df.index), list(vals), vals, "exact-answer accuracy", "In-domain vs transfer accuracy", out, "t5_accuracy", "eval set", (0, 1.1))
+    if (t5 / "task5_format_breakdown.csv").exists():
+        # What the verifier's 0s are made of: right answer without a `####` line vs actually wrong.
+        fb = pd.read_csv(t5 / "task5_format_breakdown.csv")
+        fig, ax = plt.subplots(figsize=(5.2, 2.4))
+        labels, xs, x = [], [], 0.0
+        for ds, grp in fb.groupby("dataset", sort=False):
+            for _, r in grp.iterrows():
+                xs.append(x); labels.append(f"{r['policy']}\n{ds}"); x += 1
+            x += 0.6
+        parts = [("correct_and_formatted", "correct, with #### (reward 1)", SERIES[0]),
+                 ("correct_but_unformatted", "correct, no #### (reward 0)", SERIES[3]),
+                 ("other", "wrong or no number (reward 0)", "#c9c8c3")]
+        bottom = np.zeros(len(fb))
+        for col, lab, c in parts:
+            v = fb[col].to_numpy()
+            ax.bar(xs, v, 0.8, bottom=bottom, color=c, label=lab, edgecolor="white", linewidth=0.8)
+            for xi, b0, vi in zip(xs, bottom, v):
+                if vi >= 0.08:
+                    ax.text(xi, b0 + vi / 2, f"{vi:.2f}", ha="center", va="center", fontsize=6,
+                            color="white" if c != "#c9c8c3" else INK)
+            bottom += v
+        ax.set_xticks(xs, labels)
+        ax.set_ylim(0, 1)
+        ax.set_ylabel("fraction of problems")
+        ax.grid(axis="x", visible=False)
+        ax.set_title("what the exact verifier sees", color=INK)
+        ax.legend(frameon=False, loc="center left", bbox_to_anchor=(1.01, 0.5))
+        save(fig, out, "t5_format")
 
 
 if __name__ == "__main__":
