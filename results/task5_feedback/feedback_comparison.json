@@ -1,0 +1,137 @@
+{
+  "policies": [
+    {
+      "policy": "sft",
+      "gsm_acc": 0.2833333333333333,
+      "svamp_acc": 0.44,
+      "acc_drop": -0.15666666666666668,
+      "gsm_format": 0.35,
+      "svamp_format": 0.57,
+      "gsm_winrate_vs_sft": 0.5,
+      "svamp_winrate_vs_sft": 0.5,
+      "winrate_drop": 0.0,
+      "gsm_ties": null,
+      "svamp_ties": null,
+      "gsm_len_mean": 274.33,
+      "svamp_len_mean": 163.96,
+      "gsm_verifier_judge_agree": null,
+      "gsm_judge_picks_correct": null
+    },
+    {
+      "policy": "rlvr",
+      "gsm_acc": 0.2866666666666667,
+      "svamp_acc": 0.46,
+      "acc_drop": -0.17333333333333334,
+      "gsm_format": 0.36,
+      "svamp_format": 0.59,
+      "gsm_winrate_vs_sft": 0.5033333333333333,
+      "svamp_winrate_vs_sft": 0.515,
+      "winrate_drop": -0.011666666666666714,
+      "gsm_ties": 286,
+      "svamp_ties": 79,
+      "gsm_len_mean": 275.87666666666667,
+      "svamp_len_mean": 164.07,
+      "gsm_verifier_judge_agree": 0.92,
+      "gsm_judge_picks_correct": 0.07692307692307693
+    },
+    {
+      "policy": "rlaif",
+      "gsm_acc": 0.2866666666666667,
+      "svamp_acc": 0.44,
+      "acc_drop": -0.15333333333333332,
+      "gsm_format": 0.36,
+      "svamp_format": 0.57,
+      "gsm_winrate_vs_sft": 0.495,
+      "svamp_winrate_vs_sft": 0.525,
+      "winrate_drop": -0.030000000000000027,
+      "gsm_ties": 287,
+      "svamp_ties": 79,
+      "gsm_len_mean": 275.45,
+      "svamp_len_mean": 162.98,
+      "gsm_verifier_judge_agree": 0.9366666666666666,
+      "gsm_judge_picks_correct": 0.0
+    }
+  ],
+  "diagnostics": {
+    "S_reason_verifier": 0.0,
+    "S_reason_verifier_tie": 1.0,
+    "S_reason_verifier_wrong": 0.0,
+    "S_outcome_verifier": 1.0,
+    "S_outcome_verifier_tie": 0.0,
+    "S_outcome_verifier_wrong": 0.0,
+    "S_outcome_verifier__good_reasoning_wrong_final": 1.0,
+    "S_outcome_verifier__gold_distractor_wrong_final": 1.0,
+    "S_reason_judge": 0.0,
+    "S_reason_judge_tie": 1.0,
+    "S_reason_judge_wrong": 0.0,
+    "S_outcome_judge": 0.125,
+    "S_outcome_judge_tie": 0.85,
+    "S_outcome_judge_wrong": 0.025,
+    "S_outcome_judge__good_reasoning_wrong_final": 0.0,
+    "S_outcome_judge__gold_distractor_wrong_final": 0.25,
+    "by_category": {
+      "corrupt_reasoning_correct_final": {
+        "verifier": {
+          "n": 20,
+          "better_rate": 0.0,
+          "tie_rate": 1.0,
+          "wrong_rate": 0.0
+        },
+        "judge": {
+          "n": 20,
+          "better_rate": 0.0,
+          "tie_rate": 1.0,
+          "wrong_rate": 0.0
+        },
+        "judge_order_consistency": 1.0
+      },
+      "good_reasoning_wrong_final": {
+        "verifier": {
+          "n": 20,
+          "better_rate": 1.0,
+          "tie_rate": 0.0,
+          "wrong_rate": 0.0
+        },
+        "judge": {
+          "n": 20,
+          "better_rate": 0.0,
+          "tie_rate": 1.0,
+          "wrong_rate": 0.0
+        },
+        "judge_order_consistency": 0.85
+      },
+      "persuasive_filler_correct": {
+        "verifier": {
+          "n": 20,
+          "better_rate": 0.0,
+          "tie_rate": 1.0,
+          "wrong_rate": 0.0
+        },
+        "judge": {
+          "n": 20,
+          "better_rate": 0.0,
+          "tie_rate": 0.75,
+          "wrong_rate": 0.25
+        },
+        "judge_order_consistency": 1.0
+      },
+      "gold_distractor_wrong_final": {
+        "verifier": {
+          "n": 20,
+          "better_rate": 1.0,
+          "tie_rate": 0.0,
+          "wrong_rate": 0.0
+        },
+        "judge": {
+          "n": 20,
+          "better_rate": 0.25,
+          "tie_rate": 0.7,
+          "wrong_rate": 0.05
+        },
+        "judge_order_consistency": 0.7
+      }
+    }
+  },
+  "judge_calls_total": 741,
+  "cost_note": "verifier: one regex per response, no model call; RLAIF group reward: K(K-1)/2 judge generations per prompt group (6 for K=4) with a 3B judge"
+}

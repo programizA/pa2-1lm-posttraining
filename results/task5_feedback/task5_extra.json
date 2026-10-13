@@ -1,0 +1,258 @@
+{
+  "GSM8K": {
+    "n": 300,
+    "policies": {
+      "sft": {
+        "dataset": "GSM8K",
+        "policy": "sft",
+        "n": 300,
+        "exact_accuracy": 0.2833333333333333,
+        "lenient_accuracy": 0.66,
+        "format_compliance": 0.35,
+        "correct_and_formatted": 0.2833333333333333,
+        "correct_but_unformatted": 0.37666666666666665,
+        "other": 0.33999999999999997
+      },
+      "rlvr": {
+        "dataset": "GSM8K",
+        "policy": "rlvr",
+        "n": 300,
+        "exact_accuracy": 0.2866666666666667,
+        "lenient_accuracy": 0.6433333333333333,
+        "format_compliance": 0.36,
+        "correct_and_formatted": 0.2866666666666667,
+        "correct_but_unformatted": 0.3566666666666667,
+        "other": 0.3566666666666667
+      },
+      "rlaif": {
+        "dataset": "GSM8K",
+        "policy": "rlaif",
+        "n": 300,
+        "exact_accuracy": 0.2866666666666667,
+        "lenient_accuracy": 0.66,
+        "format_compliance": 0.36,
+        "correct_and_formatted": 0.2866666666666667,
+        "correct_but_unformatted": 0.37333333333333335,
+        "other": 0.33999999999999997
+      }
+    },
+    "paired": {
+      "rlvr_vs_sft": {
+        "exact": {
+          "only_rlvr_correct": 7,
+          "only_sft_correct": 6,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0033333333333333335
+        },
+        "lenient": {
+          "only_rlvr_correct": 3,
+          "only_sft_correct": 8,
+          "mcnemar_p": 0.2265625,
+          "accuracy_diff": -0.016666666666666666
+        }
+      },
+      "rlaif_vs_sft": {
+        "exact": {
+          "only_rlaif_correct": 4,
+          "only_sft_correct": 3,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0033333333333333335
+        },
+        "lenient": {
+          "only_rlaif_correct": 4,
+          "only_sft_correct": 4,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        }
+      },
+      "rlvr_vs_rlaif": {
+        "exact": {
+          "only_rlvr_correct": 5,
+          "only_rlaif_correct": 5,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        },
+        "lenient": {
+          "only_rlvr_correct": 0,
+          "only_rlaif_correct": 5,
+          "mcnemar_p": 0.0625,
+          "accuracy_diff": -0.016666666666666666
+        }
+      }
+    },
+    "identical_text": {
+      "rlvr_vs_sft": 0.7833333333333333,
+      "rlaif_vs_sft": 0.8166666666666667,
+      "rlvr_vs_rlaif": 0.82
+    },
+    "judge": {
+      "rlvr": {
+        "identical": {
+          "tie": 229,
+          "policy": 3,
+          "sft": 3
+        },
+        "different": {
+          "tie": 57,
+          "sft": 3,
+          "policy": 5
+        },
+        "separated": {
+          "tie": 11,
+          "picks_wrong": 1,
+          "picks_correct": 1
+        },
+        "decisive_rate_on_identical_pairs": 0.02553191489361702,
+        "decisive_rate_on_different_pairs": 0.12307692307692308
+      },
+      "rlaif": {
+        "identical": {
+          "tie": 239,
+          "policy": 3,
+          "sft": 3
+        },
+        "different": {
+          "tie": 48,
+          "policy": 2,
+          "sft": 5
+        },
+        "separated": {
+          "tie": 6,
+          "picks_wrong": 1
+        },
+        "decisive_rate_on_identical_pairs": 0.024489795918367346,
+        "decisive_rate_on_different_pairs": 0.12727272727272726
+      }
+    }
+  },
+  "SVAMP": {
+    "n": 100,
+    "policies": {
+      "sft": {
+        "dataset": "SVAMP",
+        "policy": "sft",
+        "n": 100,
+        "exact_accuracy": 0.44,
+        "lenient_accuracy": 0.79,
+        "format_compliance": 0.57,
+        "correct_and_formatted": 0.44,
+        "correct_but_unformatted": 0.35,
+        "other": 0.20999999999999996
+      },
+      "rlvr": {
+        "dataset": "SVAMP",
+        "policy": "rlvr",
+        "n": 100,
+        "exact_accuracy": 0.46,
+        "lenient_accuracy": 0.79,
+        "format_compliance": 0.59,
+        "correct_and_formatted": 0.46,
+        "correct_but_unformatted": 0.33,
+        "other": 0.20999999999999996
+      },
+      "rlaif": {
+        "dataset": "SVAMP",
+        "policy": "rlaif",
+        "n": 100,
+        "exact_accuracy": 0.44,
+        "lenient_accuracy": 0.79,
+        "format_compliance": 0.57,
+        "correct_and_formatted": 0.44,
+        "correct_but_unformatted": 0.35,
+        "other": 0.20999999999999996
+      }
+    },
+    "paired": {
+      "rlvr_vs_sft": {
+        "exact": {
+          "only_rlvr_correct": 3,
+          "only_sft_correct": 1,
+          "mcnemar_p": 0.625,
+          "accuracy_diff": 0.02
+        },
+        "lenient": {
+          "only_rlvr_correct": 0,
+          "only_sft_correct": 0,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        }
+      },
+      "rlaif_vs_sft": {
+        "exact": {
+          "only_rlaif_correct": 1,
+          "only_sft_correct": 1,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        },
+        "lenient": {
+          "only_rlaif_correct": 0,
+          "only_sft_correct": 0,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        }
+      },
+      "rlvr_vs_rlaif": {
+        "exact": {
+          "only_rlvr_correct": 3,
+          "only_rlaif_correct": 1,
+          "mcnemar_p": 0.625,
+          "accuracy_diff": 0.02
+        },
+        "lenient": {
+          "only_rlvr_correct": 0,
+          "only_rlaif_correct": 0,
+          "mcnemar_p": 1.0,
+          "accuracy_diff": 0.0
+        }
+      }
+    },
+    "identical_text": {
+      "rlvr_vs_sft": 0.91,
+      "rlaif_vs_sft": 0.92,
+      "rlvr_vs_rlaif": 0.93
+    },
+    "judge": {
+      "rlvr": {
+        "identical": {
+          "policy": 11,
+          "tie": 72,
+          "sft": 8
+        },
+        "different": {
+          "tie": 7,
+          "sft": 1,
+          "policy": 1
+        },
+        "separated": {
+          "tie": 3,
+          "picks_correct": 1
+        },
+        "decisive_rate_on_identical_pairs": 0.2087912087912088,
+        "decisive_rate_on_different_pairs": 0.2222222222222222
+      },
+      "rlaif": {
+        "identical": {
+          "policy": 11,
+          "tie": 74,
+          "sft": 7
+        },
+        "different": {
+          "tie": 5,
+          "sft": 1,
+          "policy": 2
+        },
+        "separated": {
+          "tie": 1,
+          "picks_correct": 1
+        },
+        "decisive_rate_on_identical_pairs": 0.1956521739130435,
+        "decisive_rate_on_different_pairs": 0.375
+      }
+    }
+  },
+  "judge_cache_verdicts": {
+    "TIE": 658,
+    "A": 38,
+    "B": 45
+  }
+}
