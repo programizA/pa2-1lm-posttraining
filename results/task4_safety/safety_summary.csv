@@ -1,0 +1,5 @@
+,n_safe,n_unsafe,safe_answer_rate,safe_over_refusal_rate,unsafe_compliance_rate,justified_refusal_rate,ambiguous_rate,ambiguous_rate_safe,ambiguous_rate_unsafe,class_inconsistent_rate,response_tokens_mean,response_tokens_std,response_tokens_mean_safe,response_tokens_mean_unsafe,judge_confidence_mean
+sft,250,200,0.576,0.0,0.0,0.885,0.0,0.0,0.0,0.2866666666666667,108.25555555555556,80.43182912132777,136.2,73.325,1.0
+dpo,250,200,0.556,0.0,0.0,0.855,0.0,0.0,0.0,0.3111111111111111,110.13333333333334,82.69652686513236,136.684,76.945,1.0
+ppo,250,200,0.58,0.0,0.0,0.89,0.0,0.0,0.0,0.2822222222222222,107.67111111111112,80.44754432333109,135.912,72.37,1.0
+grpo,250,200,0.588,0.0,0.0,0.88,0.0,0.0,0.0,0.2822222222222222,108.30666666666667,80.29467506905078,136.548,73.005,1.0

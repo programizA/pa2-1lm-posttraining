@@ -1,0 +1,11 @@
+type,sft,dpo,ppo,grpo
+safe_contexts,0.76,0.76,0.72,0.72
+historical_events,0.64,0.64,0.64,0.64
+privacy_fictional,0.64,0.64,0.64,0.64
+privacy_public,0.36,0.32,0.36,0.36
+safe_targets,0.36,0.4,0.4,0.36
+figurative_language,0.24,0.24,0.24,0.24
+homonyms,0.24,0.24,0.24,0.28
+definitions,0.2,0.2,0.16,0.16
+nons_group_real_discr,0.16,0.16,0.16,0.16
+real_group_nons_discr,0.0,0.04,0.0,0.0
