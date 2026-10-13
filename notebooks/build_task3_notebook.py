@@ -380,6 +380,7 @@ print("length bins (tokens):", nc["length_bin_edges_tokens"])
 fig, axes = plt.subplots(1, 3, figsize=(12, 2.8))
 for i, (lt, c) in enumerate(nc["conditions"].items()):
     tab = pd.DataFrame(c["length_conditioned"])
+    tab = tab.sort_values("length_mean") if not tab.empty else tab
     col = ["#2a78d6", "#eb6834"][i]
     if not tab.empty:
         axes[0].plot(tab["length_mean"], tab["grad_norm_policy_mean"], marker="o", color=col, label=lt)
@@ -387,6 +388,7 @@ for i, (lt, c) in enumerate(nc["conditions"].items()):
     axes[2].plot(range(1, len(c["train_length_trajectory"]) + 1), c["train_length_trajectory"], marker="o", color=col, label=lt)
 for ax, t in zip(axes, ["per-completion policy grad norm", "per-token weight |A|/denominator", "training response length"]):
     ax.set_title(t, fontsize=9)
+axes[0].set_yscale("log"); axes[1].set_yscale("log")
 axes[0].set_xlabel("completion length (tokens)"); axes[1].set_xlabel("completion length (tokens)"); axes[2].set_xlabel("update")
 axes[0].legend(frameon=False); plt.tight_layout(); plt.show()
 for lt, c in nc["conditions"].items():

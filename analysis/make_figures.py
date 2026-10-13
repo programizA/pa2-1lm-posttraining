@@ -255,7 +255,8 @@ def main():
     if (t3 / "train_standard.jsonl").exists():
         trajectory_grid(jl(t3 / "train_standard.jsonl"), [
             ("reward_mean", "reward-model score"), ("kl_token_mean", "KL to reference"), ("group_reward_std_mean", "within-group reward std"),
-            ("uninformative_group_fraction", "uninformative-group fraction"), ("policy_loss", "policy loss"), ("grad_norm", "grad norm"),
+            ("uninformative_group_fraction", "uninformative-group fraction"),
+            ("trained_completion_fraction", "completions trained (not masked)"), ("grad_norm", "grad norm"),
             ("entropy_token_mean", "entropy"), ("response_tokens_mean", "response length")],
             "Standard GRPO continuation from the supplied midpoint", out, "t3_grpo_standard")
     if (t3 / "group_size_study.json").exists():
@@ -268,8 +269,11 @@ def main():
         axes[0].plot([int(k) for k in ks], [g["partition"][k]["informative_group_rate"] for k in ks], color=INK2, ls="--", label="all prompts")
         axes[0].set_title("informative-group rate (equal generations)", color=INK)
 
-        axes[1].plot([int(k) for k in ks], [g["partition"][k]["baseline_mse_vs_8sample_mean"] for k in ks], color=SERIES[0], marker="o")
-        axes[1].set_title("group-baseline error vs 8-sample mean", color=INK)
+        # The K=8 baseline IS the 8-sample mean it is compared with, so its error is 0 by construction: not plotted.
+        kb = [k for k in ks if int(k) < 8]
+        axes[1].plot([int(k) for k in kb], [g["partition"][k]["baseline_mse_vs_8sample_mean"] for k in kb], color=SERIES[0], marker="o")
+        axes[1].set_title("baseline error vs 8-sample mean\n(K=8 is the reference itself)", color=INK)
+        axes[1].set_ylim(bottom=0)
         for ax in axes:
             ax.set_xticks([int(k) for k in ks])
             ax.set_xlabel("group size K")
@@ -279,19 +283,24 @@ def main():
         save(fig, out, "t3_group_size")
     if (t3 / "normalization_comparison.json").exists():
         n = json.loads((t3 / "normalization_comparison.json").read_text())
-        fig, axes = plt.subplots(1, 2, figsize=(5.6, 2.1))
+        fig, axes = plt.subplots(1, 2, figsize=(6.4, 2.4))
         for i, (lt, c) in enumerate(n["conditions"].items()):
             tab = pd.DataFrame(c["length_conditioned"])
             if tab.empty:
                 continue
-            axes[0].plot(tab["length_mean"], tab["grad_norm_policy_mean"], color=SERIES[i], marker=MARKERS[i], label=lt)
-            axes[1].plot(tab["length_mean"], tab["per_token_weight_mean"], color=SERIES[i], marker=MARKERS[i], label=lt)
-        axes[0].set_title("per-completion policy grad norm", color=INK)
-        axes[1].set_title("per-token loss weight |A|/denominator", color=INK)
+            tab = tab.sort_values("length_mean")  # bins are labels; order them by length, not alphabetically
+            label = {"grpo": "canonical GRPO (1/|o|)", "dr_grpo": "Dr. GRPO (1/L)"}.get(lt, lt)
+            axes[0].plot(tab["length_mean"], tab["grad_norm_policy_mean"], color=SERIES[i], marker=MARKERS[i], label=label)
+            axes[1].plot(tab["length_mean"], tab["per_token_weight_mean"], color=SERIES[i], marker=MARKERS[i], label=label)
+        # Log scales: the two losses differ ~10x in overall gradient size, and the question is the SLOPE with length.
+        axes[0].set_title("per-completion policy gradient norm", color=INK)
+        axes[1].set_title(r"per-token weight $|A|$ / denominator", color=INK)
         for ax in axes:
-            ax.set_xlabel("completion length (tokens, quartile bins)")
-        axes[0].legend(frameon=False)
-        fig.tight_layout()
+            ax.set_xscale("log"); ax.set_yscale("log")
+            ax.set_xlabel("completion length (tokens, quartile-bin mean)")
+        fig.tight_layout(rect=(0, 0.1, 1, 1))
+        h, l = axes[0].get_legend_handles_labels()
+        fig.legend(h, l, frameon=False, ncol=2, loc="lower center", bbox_to_anchor=(0.5, 0.0))
         save(fig, out, "t3_normalization")
 
     # ---------------- Task 4

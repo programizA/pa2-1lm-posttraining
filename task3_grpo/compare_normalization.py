@@ -34,7 +34,7 @@ def length_conditioned(comps, edges):
     agg = df.groupby("len_bin").agg(
         n=("length", "size"), length_mean=("length", "mean"), abs_adv_mean=("advantage", lambda a: float(np.mean(np.abs(a)))),
         grad_norm_policy_mean=("grad_norm_policy", "mean"), per_token_weight_mean=("per_token_weight", "mean"),
-        sequence_weight_mean=("sequence_weight", "mean")).reset_index()
+        sequence_weight_mean=("sequence_weight", "mean")).reset_index().sort_values("length_mean")
     corr = {
         "all": safe_corr(df["length"], df["grad_norm_policy"]),
         "positive_adv": safe_corr(df[df.advantage > 0]["length"], df[df.advantage > 0]["grad_norm_policy"]),
