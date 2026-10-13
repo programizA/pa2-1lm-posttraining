@@ -1,0 +1,10 @@
+\begin{tabular}{@{}lccccccc|ccccc@{}}
+\toprule
+ & \multicolumn{7}{c|}{GSM8K, in-domain ($n=300$)} & \multicolumn{5}{c}{SVAMP, transfer ($n=100$)} \\
+ & exact & lenient & format & tokens (sd) & W/T/L & win & agree & exact & tokens (sd) & W/T/L & win & $\Delta^\ddagger$ \\
+\midrule
+SFT & 28.3 & 66.0 & 35 & 274 (85) & -- & -- & -- & 44 & 164 (72) & -- & -- & 15.7 \\
+RLVR & 28.7 & 64.3 & 36 & 276 (86) & 8/286/6 & 0.503 & 92 & 46 & 164 (73) & 12/79/9 & 0.515 & 17.3 \\
+RLAIF & 28.7 & 66.0 & 36 & 275 (88) & 5/287/8 & 0.495 & 94 & 44 & 163 (71) & 13/79/8 & 0.525 & 15.3 \\
+\bottomrule
+\end{tabular}

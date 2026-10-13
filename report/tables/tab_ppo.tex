@@ -1,0 +1,17 @@
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Cached batch (\%)} & Stability & \multicolumn{5}{c}{Held-out (54 prompts) after 8 updates} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-4}\cmidrule(l){5-9}
+Fork & clip & affected & max $\widehat{\mathrm{KL}}_{old,new}$ & RM & $\Delta$RM [95\% CI] & KL/seq & entropy & tokens \\
+\midrule
+$\epsilon=0.05$ & 15.4 & 7.6 & 2.2e-05 & 1.61 & 0.02 [$-$0.06, 0.12] & 0.011 & 0.99 & 289 \\
+$\epsilon=0.2$ & 4.1 & 2.0 & 2.2e-05 & 1.61 & 0.02 [$-$0.06, 0.12] & 0.011 & 0.99 & 289 \\
+$\epsilon=0.5$ & 2.1 & 1.0 & 2.2e-05 & 1.61 & 0.02 [$-$0.06, 0.12] & 0.011 & 0.99 & 289 \\
+\midrule
+$\beta_{KL}=0$ & -- & -- & -- & 1.56 & $-$0.03 [$-$0.19, 0.11] & $-$0.011 & 0.94 & 290 \\
+$\beta_{KL}=0.1$ & -- & -- & -- & 1.61 & 0.02 [$-$0.06, 0.12] & 0.011 & 0.99 & 289 \\
+$\beta_{KL}=0.2$ & -- & -- & -- & 1.62 & 0.03 [$-$0.09, 0.16] & 0.004 & 0.99 & 291 \\
+\midrule
+midpoint (start) & -- & -- & -- & 1.59 & -- & $-$0.012 & 1.00 & 290 \\
+\bottomrule
+\end{tabular}

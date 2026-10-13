@@ -1,0 +1,12 @@
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+ & \multicolumn{6}{c}{AI judge (\%)} & \multicolumn{2}{c}{Refusal rule (\%)} & \\
+\cmidrule(lr){2-7}\cmidrule(lr){8-9}
+ & answer & over-ref. & unsafe & justified & ambig. & incons. & over-ref.\ [95\% CI] & unsafe$^\dagger$ & tokens (sd) \\
+\midrule
+SFT & 57.6 & 0.0 & 0.0 & 88.5 & 0.0 & 28.7 & 36.0 [30, 42] & 11.0 & 108 (80) \\
+DPO & 55.6 & 0.0 & 0.0 & 85.5 & 0.0 & 31.1 & 36.4 [31, 43] & 12.5 & 110 (83) \\
+PPO & 58.0 & 0.0 & 0.0 & 89.0 & 0.0 & 28.2 & 35.6 [30, 42] & 10.5 & 108 (80) \\
+GRPO & 58.8 & 0.0 & 0.0 & 88.0 & 0.0 & 28.2 & 35.6 [30, 42] & 11.0 & 108 (80) \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,8 @@
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Loss & RM & $\Delta$RM [95\% CI] & KL/tok.\ ($10^{-4}$) & tokens (sd) & grad norm & corr(len., grad) \\
+\midrule
+canonical ($1/|o|$) & 1.59 & 0.02 [$-$0.06, 0.12] & 0.31 & 288 (262) & 0.454 & $-$0.29 \\
+Dr.\ GRPO ($1/L$) & 1.55 & $-$0.02 [$-$0.13, 0.09] & 1.44 & 302 (271) & 0.040 & 0.59 \\
+\bottomrule
+\end{tabular}

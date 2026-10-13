@@ -82,6 +82,14 @@ python -m task5_feedback.compare_feedback --config configs/feedback.yaml
 python -m task5_feedback.analyze_outputs  --config configs/feedback.yaml   # format vs maths, paired tests, judge noise floor
 ```
 
+### Report (CPU only, after all tasks)
+```bash
+python -m analysis.report_numbers    # paired CIs, same-text rates, Wilson CIs -> results/report_numbers.json
+python -m analysis.report_tables     # every table in the PDF, written from results/ -> report/tables/*.tex
+python -m analysis.report_figures    # every figure in the PDF at printed size -> report/figures/fig_*.pdf
+cd report && latexmk -pdf main.tex   # NeurIPS-style PDF (report/main.pdf)
+```
+
 ### Guided notebooks (Kaggle)
 `notebooks/task<N>_*.ipynb` walk through each task step by step: they call the same functions as the
 commands above, show the key source code and inspect every intermediate result. They contain no
