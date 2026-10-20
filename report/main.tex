@@ -202,7 +202,6 @@ Distractor & ``A tempting candidate is 3, but that candidate is rejected. \ldots
 
 \textbf{Feedback-source comparison.} The two feedback sources had different limitations in these tests. The exact verifier was deterministic and sensitive to the extracted final answer, but did not assess the reasoning or accept every answer format. The pairwise judge considered the full response, yet often tied corrupted solutions and sometimes changed its verdict with response order or added filler. It also required a 3B-model inference call for each pair, compared with a simple parsing check for the verifier; all-pairs comparison requires K(K $-$ 1)/2 judgments per group. If a group's pairwise judgments all tie, the resulting equal rewards provide no relative-reward advantage. This could limit learning under such a reward scheme, but we do not have the RLAIF training logs needed to establish whether it occurred during the supplied run.
 
-\clearpage
 \section{Conclusion}
 Across the five tasks, the main limitation was not simply that post-training produced small changes, but that the available metrics often made those changes difficult to interpret. DPO showed measurable changes in preference fitting, while PPO and GRPO produced little change in the generated outputs under our training budget. The evaluation experiments revealed a separate problem: reward and preference scores did not always reflect answer correctness or appropriate safety behavior.
 
