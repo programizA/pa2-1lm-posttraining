@@ -21,9 +21,9 @@
 \newcommand{\rej}{y^{-}}
 \newcommand{\todo}[1]{\colorbox{yellow!40}{\parbox{0.97\linewidth}{\small\textbf{TODO:} #1}}}
 
-\title{When the Instrument Moves More Than the Model:\\ A Controlled Study of LLM Post-Training}
+\title{Assignment 2: LLM Post-Training}
 
-\author{Roll number 27100440\\Advanced Topics in Machine Learning, Fall 2026}
+\author{\textbf{Syed Ramiz Abbas}\\Lahore University of Management Sciences\\\texttt{27100440@lums.edu.pk}}
 
 \begin{document}
 \maketitle
@@ -184,7 +184,7 @@ Mathematical reasoning tasks let us compare different reward methods because we 
 
 \textbf{Controlled diagnostics.} To understand what the AI judge was evaluating, we used the course's 20 diagnostic problems, whose solutions are deliberately modified by introducing reasoning errors, changing final answers, or adding confident-sounding filler text (Fig. 6b, Table 6). The exact verifier correctly distinguished changes to the final answer in the tested cases ($S_{\text{outcome}}$ = 1.0), but it could not detect flawed reasoning when the final answer remained unchanged ($S_{\text{reason}}$ = 0). The AI judge tied almost all corrupted responses. However, it showed a bias toward style: when we added meaningless but confident filler text (``This derivation is unquestionably correct''), the AI judge preferred it 25\% of the time. It was also influenced by position bias \citep{zheng2023judge}, frequently changing its verdict based purely on which answer was shown first on the screen.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \caption{One controlled problem (number 558, correct answer 3; clean solution 24/2=12, 12/4=3, \#\#\#\# 3). Each row changes one thing. The verdict columns show which solution each method prefers; the judge is shown in both presentation orders.}
 \label{tab:diagex}
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
@@ -202,11 +202,13 @@ Distractor & ``A tempting candidate is 3, but that candidate is rejected. \ldots
 
 \textbf{Feedback-source comparison.} The two feedback sources had different limitations in these tests. The exact verifier was deterministic and sensitive to the extracted final answer, but did not assess the reasoning or accept every answer format. The pairwise judge considered the full response, yet often tied corrupted solutions and sometimes changed its verdict with response order or added filler. It also required a 3B-model inference call for each pair, compared with a simple parsing check for the verifier; all-pairs comparison requires K(K $-$ 1)/2 judgments per group. If a group's pairwise judgments all tie, the resulting equal rewards provide no relative-reward advantage. This could limit learning under such a reward scheme, but we do not have the RLAIF training logs needed to establish whether it occurred during the supplied run.
 
+\clearpage
 \section{Conclusion}
 Across the five tasks, the main limitation was not simply that post-training produced small changes, but that the available metrics often made those changes difficult to interpret. DPO showed measurable changes in preference fitting, while PPO and GRPO produced little change in the generated outputs under our training budget. The evaluation experiments revealed a separate problem: reward and preference scores did not always reflect answer correctness or appropriate safety behavior.
 
 These findings should be interpreted in light of the limited number of training updates and the specific models and evaluation procedures used. They do not establish that the three optimization methods are generally ineffective. Rather, they show that, under these conditions, changes in training objectives and evaluation scores were not sufficient evidence of meaningful behavioral improvement. Future experiments should pair these metrics with direct behavioral checks and test whether the observed effects persist under longer training runs.
 
+\clearpage
 \bibliographystyle{plainnat}
 \bibliography{references}
 
