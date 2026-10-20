@@ -56,7 +56,7 @@ def fig_dpo(R, out, nums):
     st = nums["t1_strata"]
     strata = ["preferred_longer", "length_matched", "rejected_longer"]
     names = ["preferred\nlonger", "length\nmatched", "rejected\nlonger"]
-    fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.2), gridspec_kw={"width_ratios": [1, 1.25]})
+    fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.05), gridspec_kw={"width_ratios": [1, 1.25]})
     x = np.arange(3)
     for i, (cond, lab, col) in enumerate([("standard", "standard DPO", BLUE), ("length_balanced", "length-balanced DPO", ORANGE)]):
         acc = np.array([st[cond][s]["acc"] for s in strata])
@@ -95,7 +95,7 @@ def fig_continuations(R, out):
     ppo = jl(R / "task2_ppo" / "train_standard.jsonl")
     grpo = jl(R / "task3_grpo" / "train_standard.jsonl")
     up = np.arange(1, 21)
-    fig, axes = plt.subplots(3, 4, figsize=(W, 3.35), sharex=True)
+    fig, axes = plt.subplots(3, 4, figsize=(W, 3.15), sharex=True)
     ax = axes.flat
 
     def two(axh, kp, kg, title, log=False):
@@ -147,7 +147,7 @@ def fig_continuations(R, out):
 def fig_ppo_ablations(R, out):
     clip = json.loads((R / "task2_ppo" / "clipping_cached_batch.json").read_text())["per_epsilon"]
     kl = pd.read_csv(R / "task2_ppo" / "kl_trajectories.csv")
-    fig, (a, b, c) = plt.subplots(1, 3, figsize=(W, 1.75), gridspec_kw={"width_ratios": [1, 1.1, 1.1]})
+    fig, (a, b, c) = plt.subplots(1, 3, figsize=(W, 1.6), gridspec_kw={"width_ratios": [1, 1.1, 1.1]})
     eps = ["0.05", "0.2", "0.5"]
     x = np.arange(3)
     a.bar(x - 0.19, [clip[e]["at_midpoint"]["clip_fraction"] for e in eps], 0.36, color=BLUE, label="ratio outside band")
@@ -176,7 +176,7 @@ def fig_grpo_ablations(R, out):
     g = json.loads((R / "task3_grpo" / "group_size_study.json").read_text())
     n = json.loads((R / "task3_grpo" / "normalization_comparison.json").read_text())["conditions"]
     ks = ["2", "4", "8"]
-    fig, (a, b, c) = plt.subplots(1, 3, figsize=(W, 1.8))
+    fig, (a, b, c) = plt.subplots(1, 3, figsize=(W, 1.65))
     for d, col, m in (("hard", BLUE, "o"), ("medium", ORANGE, "s"), ("easy", GREEN, "^")):
         a.plot([2, 4, 8], [g["by_difficulty"][k][d]["informative_group_rate"] for k in ks], color=col, marker=m, label=d)
         b.plot([2, 4, 8], [g["by_difficulty"][k][d]["mean_within_group_reward_std"] for k in ks], color=col, marker=m, label=d)
@@ -225,7 +225,7 @@ def fig_safety(R, out):
 
     rows = [label(c, t) for c, t in judge.index]
     nsafe = int((judge.index.get_level_values(0) == "SAFE").sum())
-    fig, axes = plt.subplots(1, 2, figsize=(W, 2.1), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(W, 1.95), sharey=True)
     for axh, M, title in ((axes[0], judge, "AI judge: labelled JUSTIFIED_REFUSAL"), (axes[1], refused, "refusal rule: response refused")):
         im = axh.imshow(M.to_numpy(), cmap="Blues", vmin=0, vmax=1, aspect="auto")
         for i in range(M.shape[0]):
