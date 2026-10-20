@@ -225,7 +225,7 @@ def fig_safety(R, out):
 
     rows = [label(c, t) for c, t in judge.index]
     nsafe = int((judge.index.get_level_values(0) == "SAFE").sum())
-    fig, axes = plt.subplots(1, 2, figsize=(W, 2.25), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(W, 2.1), sharey=True)
     for axh, M, title in ((axes[0], judge, "AI judge: labelled JUSTIFIED_REFUSAL"), (axes[1], refused, "refusal rule: response refused")):
         im = axh.imshow(M.to_numpy(), cmap="Blues", vmin=0, vmax=1, aspect="auto")
         for i in range(M.shape[0]):
@@ -249,7 +249,7 @@ def fig_feedback(R, out):
     t5 = R / "task5_feedback"
     fb = pd.read_csv(t5 / "task5_format_breakdown.csv")
     d = json.loads((t5 / "diagnostic_summary.json").read_text())
-    fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.1), gridspec_kw={"width_ratios": [1.1, 1.3]})
+    fig, (a, b) = plt.subplots(1, 2, figsize=(W, 1.95), gridspec_kw={"width_ratios": [1.1, 1.3]})
     xs, labels, x = [], [], 0.0
     for ds, grp in fb.groupby("dataset", sort=False):
         for _, r in grp.iterrows():
